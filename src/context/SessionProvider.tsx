@@ -217,6 +217,7 @@ export function SessionProvider({
 			startSendInterval,
 			reloadHistory,
 			reloadStatus,
+			myUserId,
 		],
 	);
 

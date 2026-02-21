@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { SessionProvider, useSession } from "../context/SessionProvider";
 import type { LatLng } from "../utils/types/sessionTypes";
 import { useAuth } from "../contexts/AuthContext";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams, useNavigate } from "react-router-dom";
 
 declare global {
 	interface Window {
@@ -80,6 +80,7 @@ function SessionMapInner() {
 	const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_KEY as string;
 	const { user } = useAuth();
 	const myUserId = user?.id ?? null;
+	const navigate = useNavigate();
 
 	const {
 		sessionId,
@@ -98,6 +99,7 @@ function SessionMapInner() {
 	const myPolylineRef = useRef<any>(null);
 	const partnerPolylineRef = useRef<any>(null);
 	const hydratedRef = useRef(false);
+	const meetCircleRef = useRef<any>(null);
 
 	const [myTrail, setMyTrail] = useState<LatLng[]>([]);
 	const [partnerTrail, setPartnerTrail] = useState<LatLng[]>([]);
@@ -113,12 +115,19 @@ function SessionMapInner() {
 	const startAtRef = useRef<number>(Date.now());
 	const [elapsed, setElapsed] = useState("0:00");
 
+	// ✅ 만남 버튼 누르면 시간 멈춤
+	const [isStopped, setIsStopped] = useState(false);
+
+	// ✅ 타이머 (isStopped면 interval 중지)
 	useEffect(() => {
+		if (isStopped) return;
+
 		const t = window.setInterval(() => {
 			setElapsed(formatElapsed(Date.now() - startAtRef.current));
 		}, 1000);
+
 		return () => window.clearInterval(t);
-	}, []);
+	}, [isStopped]);
 
 	// 1) Kakao Map init (중요: 한번만 init)
 	useEffect(() => {
@@ -180,7 +189,6 @@ function SessionMapInner() {
 		// shareMy가 꺼지면 마커/폴리라인 숨김
 		if (!shareMy) {
 			if (myMarkerRef.current) myMarkerRef.current.setMap(null);
-			// 폴리라인은 setMap(null)로 숨김 가능
 			if (myPolylineRef.current) myPolylineRef.current.setMap(null);
 			return;
 		} else {
@@ -212,7 +220,7 @@ function SessionMapInner() {
 			myMarkerRef.current.setPosition(ll);
 		}
 
-		// 처음만 센터 잡고 싶으면 플래그 추가 가능. 지금은 계속 따라감.
+		// 지금은 계속 따라감.
 		map.setCenter(ll);
 	}, [ready, myPos, shareMy]);
 
@@ -273,25 +281,95 @@ function SessionMapInner() {
 		if (!ready) return;
 		const toLatLng = (p: LatLng) => new window.kakao.maps.LatLng(p.lat, p.lng);
 
-		// 표시가 꺼져있으면 굳이 setPath 안 해도 됨 (하지만 해도 문제없음)
 		if (shareMy) myPolylineRef.current?.setPath(myTrail.map(toLatLng));
 		if (sharePartner)
 			partnerPolylineRef.current?.setPath(partnerTrail.map(toLatLng));
 	}, [ready, myTrail, partnerTrail, shareMy, sharePartner]);
 
+	// ✅ 원 표시 (거리 200m 이하일 때, 두 점을 지름으로 하는 원)
+	useEffect(() => {
+		if (!ready || !mapRef.current) return;
+
+		const map = mapRef.current;
+
+		// 위치 둘 중 하나라도 없으면 숨김
+		if (!myPos || !partnerPos) {
+			if (meetCircleRef.current) {
+				meetCircleRef.current.setMap?.(null);
+			}
+			return;
+		}
+
+		const d = distanceMeters(myPos, partnerPos);
+
+		// 200m 초과면 숨김
+		if (d > 200) {
+			if (meetCircleRef.current) {
+				meetCircleRef.current.setMap?.(null);
+			}
+			return;
+		}
+
+		// 중점 (위경도 평균)
+		const centerLat = (myPos.lat + partnerPos.lat) / 2;
+		const centerLng = (myPos.lng + partnerPos.lng) / 2;
+		const center = new window.kakao.maps.LatLng(centerLat, centerLng);
+
+		const radius = d / 2; // meters
+
+		// 없으면 생성
+		if (!meetCircleRef.current) {
+			meetCircleRef.current = new window.kakao.maps.Circle({
+				map,
+				center,
+				radius,
+				strokeWeight: 4,
+				strokeColor: "#ff2d55",
+				strokeOpacity: 0.9,
+				strokeStyle: "solid",
+				fillColor: "#ff2d55",
+				fillOpacity: 0.12,
+			});
+			return;
+		}
+
+		const circle = meetCircleRef.current;
+
+		// SDK 차이 대응 (setCenter 또는 setPosition)
+		if (typeof circle.setCenter === "function") {
+			circle.setCenter(center);
+		} else if (typeof circle.setPosition === "function") {
+			circle.setPosition(center);
+		}
+
+		if (typeof circle.setRadius === "function") {
+			circle.setRadius(radius);
+		}
+
+		if (circle.getMap?.() == null) {
+			circle.setMap(map);
+		}
+	}, [ready, myPos, partnerPos]);
+
 	const handleMeet = async () => {
 		if (!myPos) return;
 		await sendMeetAndFinish(myPos);
+
+		// ✅ 누르는 순간 시간을 고정하고 멈춤
+		setElapsed(formatElapsed(Date.now() - startAtRef.current));
+		setIsStopped(true);
+
+		setShareMy(false);
+		setSharePartner(false);
+		navigate("/story", { replace: true });
 	};
 
-	// ✅ (7) 사진 업로드: Provider 액션으로 처리 (업로드→응답(SessionPoint)→WS 재전송→history 갱신)
+	// 사진 업로드
 	const handlePhotoUpload = async (file: File) => {
 		if (!sessionId) return;
 		setPhotoUploading(true);
 		try {
 			await uploadPhotoAndBroadcast(file);
-			// provider 내부에서 reloadHistory 해주지만, 안전하게 한 번 더 원하면 아래 유지
-			// await reloadHistory();
 		} finally {
 			setPhotoUploading(false);
 		}
@@ -307,8 +385,8 @@ function SessionMapInner() {
 	useEffect(() => {
 		if (!ready) return;
 		if (!history || history.length === 0) return;
-		if (!myUserId) return; // 내 userId 없으면 분리 불가
-		if (hydratedRef.current) return; // ✅ 새로고침/초기 진입 때 한 번만 복원
+		if (!myUserId) return;
+		if (hydratedRef.current) return;
 
 		const points = [...history]
 			.filter((p) => p.lat != null && p.lng != null)
