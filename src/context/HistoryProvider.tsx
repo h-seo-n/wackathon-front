@@ -7,33 +7,35 @@ import {
 	type ReactNode,
 } from "react";
 
-import type { SessionHistoryResponse } from "../utils/types";
-import { getHistoryBySessionId, listHistory } from "../api/history";
+import type {
+	HistoryListResponse,
+	SessionHistoryResponse,
+} from "../utils/types/sessionTypes";
 
-/**
- * History Context Types
- */
-type ListHistoryParams = {
-	date: string; // YYYYMMDD / YYYYMM / YYYY
-};
+import { getHistory, getHistoryBySessionId, listHistory } from "../api/history";
+
+type HistoryListItem = HistoryListResponse["historyList"][number];
 
 type HistoryContextValue = {
 	// data
-	history: SessionHistoryResponse | null;
-	histories: SessionHistoryResponse[];
+	globalHistory: SessionHistoryResponse | null; // GET /api/history
+	history: SessionHistoryResponse | null; // GET /history/{sessionId}
+	histories: HistoryListItem[]; // GET /history/list
 
 	// state
+	isLoadingGlobalHistory: boolean;
 	isLoadingHistory: boolean;
 	isLoadingHistories: boolean;
 	error: string | null;
 
 	// actions
+	fetchGlobalHistory: () => Promise<SessionHistoryResponse>;
 	fetchHistoryBySessionId: (
 		sessionId: number,
 	) => Promise<SessionHistoryResponse>;
-	fetchHistories: (
-		params: ListHistoryParams,
-	) => Promise<SessionHistoryResponse[]>;
+	fetchHistories: () => Promise<HistoryListResponse>;
+
+	clearGlobalHistory: () => void;
 	clearHistory: () => void;
 	clearHistories: () => void;
 	clearError: () => void;
@@ -44,17 +46,42 @@ const HistoryContext = createContext<HistoryContextValue | undefined>(
 );
 
 export function HistoryProvider({ children }: { children: ReactNode }) {
+	const [globalHistory, setGlobalHistory] =
+		useState<SessionHistoryResponse | null>(null);
 	const [history, setHistory] = useState<SessionHistoryResponse | null>(null);
-	const [histories, setHistories] = useState<SessionHistoryResponse[]>([]);
+	const [histories, setHistories] = useState<HistoryListItem[]>([]);
 
+	const [isLoadingGlobalHistory, setIsLoadingGlobalHistory] = useState(false);
 	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 	const [isLoadingHistories, setIsLoadingHistories] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	const clearError = useCallback(() => setError(null), []);
+	const clearGlobalHistory = useCallback(() => setGlobalHistory(null), []);
 	const clearHistory = useCallback(() => setHistory(null), []);
 	const clearHistories = useCallback(() => setHistories([]), []);
 
+	// 1) GET /api/history
+	const fetchGlobalHistory = useCallback(async () => {
+		setIsLoadingGlobalHistory(true);
+		setError(null);
+		try {
+			const data = await getHistory();
+			setGlobalHistory(data);
+			return data;
+		} catch (e: any) {
+			const message =
+				e?.response?.data?.message ||
+				e?.message ||
+				"전체 히스토리를 불러오지 못했습니다.";
+			setError(message);
+			throw e;
+		} finally {
+			setIsLoadingGlobalHistory(false);
+		}
+	}, []);
+
+	// 2) GET /history/{sessionId}
 	const fetchHistoryBySessionId = useCallback(async (sessionId: number) => {
 		setIsLoadingHistory(true);
 		setError(null);
@@ -74,12 +101,13 @@ export function HistoryProvider({ children }: { children: ReactNode }) {
 		}
 	}, []);
 
-	const fetchHistories = useCallback(async (params: ListHistoryParams) => {
+	// 3) GET /history/list
+	const fetchHistories = useCallback(async () => {
 		setIsLoadingHistories(true);
 		setError(null);
 		try {
-			const data = await listHistory(params);
-			setHistories(data);
+			const data = await listHistory();
+			setHistories(data.historyList ?? []);
 			return data;
 		} catch (e: any) {
 			const message =
@@ -95,25 +123,36 @@ export function HistoryProvider({ children }: { children: ReactNode }) {
 
 	const value = useMemo<HistoryContextValue>(
 		() => ({
+			globalHistory,
 			history,
 			histories,
+
+			isLoadingGlobalHistory,
 			isLoadingHistory,
 			isLoadingHistories,
 			error,
+
+			fetchGlobalHistory,
 			fetchHistoryBySessionId,
 			fetchHistories,
+
+			clearGlobalHistory,
 			clearHistory,
 			clearHistories,
 			clearError,
 		}),
 		[
+			globalHistory,
 			history,
 			histories,
+			isLoadingGlobalHistory,
 			isLoadingHistory,
 			isLoadingHistories,
 			error,
+			fetchGlobalHistory,
 			fetchHistoryBySessionId,
 			fetchHistories,
+			clearGlobalHistory,
 			clearHistory,
 			clearHistories,
 			clearError,
@@ -130,8 +169,6 @@ export function HistoryProvider({ children }: { children: ReactNode }) {
  */
 export function useHistory() {
 	const ctx = useContext(HistoryContext);
-	if (!ctx) {
-		throw new Error("useHistory must be used within a HistoryProvider");
-	}
+	if (!ctx) throw new Error("useHistory must be used within a HistoryProvider");
 	return ctx;
 }

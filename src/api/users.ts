@@ -14,6 +14,6 @@ export const uploadProfileImg = async (file: File) => {
 };
 
 export const getUser = async () => {
-    const response = await api.get<User>('/users/me');
-    return response.data;
-}
+	const response = await api.get<User>("/users/me");
+	return response.data;
+};

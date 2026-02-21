@@ -11,43 +11,56 @@ import { useState } from "react";
 import AvatarIcon from "/images/Avatar.svg";
 
 export const LoginPage = () => {
-    const [email, setEmail] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-      const { login } = useAuth();
+	const [email, setEmail] = useState<string>("");
+	const [password, setPassword] = useState<string>("");
+	const { login } = useAuth();
 
-    const navigate = useNavigate();
+	const navigate = useNavigate();
 
-    const handleLogin = async () => {
-        try {
-        await login({ email, password });
-        navigate("/home");
-        } catch {
-        alert("로그인에 실패했습니다.");
-        }
-    };
+	const handleLogin = async () => {
+		try {
+			await login({ email, password });
+			navigate("/home");
+		} catch {
+			alert("로그인에 실패했습니다.");
+		}
+	};
 
-    return (
-        <PinkContainer>
-        <Wrapper>
-            <img src={HeartIcon} alt="a heart icon" style={{ width: 64 }}/>
-            <Title>로그인</Title>
-            <Explanation>만나기까지의 기다림도 설렘이 될 수 있게</Explanation>
-            <Col style={{ gap: 16, width: '100%', marginTop: 30 }}>
-                <Col style={{ gap: 4 }}>
-                    <InputLabel style={{ textAlign: "start" }}>이메일</InputLabel>
-                    <TextInput type="email" onChange={(e) => setEmail(e.target.value)} />
-                </Col>
-                <Col style={{ gap: 4 }}>
-                    <InputLabel style={{ textAlign: "start" }}>비밀번호</InputLabel>
-                    <TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </Col>
-                <PinkButton onClick={handleLogin}>로그인</PinkButton>
-                <TextButton onClick={()=> { navigate('/signup'); } }>계정이 없으신가요? 회원가입</TextButton>
-            </Col>
-        </Wrapper>
-        </PinkContainer>
-    )
-}
+	return (
+		<PinkContainer>
+			<Wrapper>
+				<img src={HeartIcon} alt="a heart icon" style={{ width: 64 }} />
+				<Title>로그인</Title>
+				<Explanation>만나기까지의 기다림도 설렘이 될 수 있게</Explanation>
+				<Col style={{ gap: 16, width: "100%", marginTop: 30 }}>
+					<Col style={{ gap: 4 }}>
+						<InputLabel style={{ textAlign: "start" }}>이메일</InputLabel>
+						<TextInput
+							type="email"
+							onChange={(e) => setEmail(e.target.value)}
+						/>
+					</Col>
+					<Col style={{ gap: 4 }}>
+						<InputLabel style={{ textAlign: "start" }}>비밀번호</InputLabel>
+						<TextInput
+							type="password"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+						/>
+					</Col>
+					<PinkButton onClick={handleLogin}>로그인</PinkButton>
+					<TextButton
+						onClick={() => {
+							navigate("/signup");
+						}}
+					>
+						계정이 없으신가요? 회원가입
+					</TextButton>
+				</Col>
+			</Wrapper>
+		</PinkContainer>
+	);
+};
 
 export const SignupPage = () => {
     const navigate = useNavigate();
@@ -59,18 +72,18 @@ export const SignupPage = () => {
     const [profile, setProfile] = useState<File | null>(null);
     const [previewImgUrl, setPreviewImgUrl] = useState<string>(AvatarIcon);
 
-  const handleSignup = async () => {
-    try {
+	const handleSignup = async () => {
+		try {
         // setProfileImg
-        await signup({ nickname, email, password });
+  			await signup({ nickname, email, password });
         if (profile) {
             await setProfileImg(profile);
         }
 
-        navigate("/home");
-    } catch {
-      alert("회원가입에 실패했습니다.");
-    }
+  			navigate("/home");
+		} catch {
+			alert("회원가입에 실패했습니다.");
+		}
   };
 
     const handleImgUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,8 +91,7 @@ export const SignupPage = () => {
         if (!file) return;
         setProfile(file);
         setPreviewImgUrl(URL.createObjectURL(file));
-    };
-
+  	};
 
     return (
         <PinkContainer>

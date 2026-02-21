@@ -9,11 +9,15 @@ import { GrayButton, PinkButton } from "@/components/Button";
 import { IoPauseSharp, IoPlayOutline } from "react-icons/io5";
 import { IoMapOutline } from "react-icons/io5";
 import { Col } from "@/components/FlexBox";
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import theme from "@/assets/theme";
 import ToggleTab from "@/components/ToggleTab";
 import MeetingBanner from "./MeetingBanner";
 import styled from "styled-components";
+import Toast from "@/components/Toast";
+import { notifyPartnerLocationShare } from "@/api/noti";
+import { createSession, getActiveSession } from "@/api/session";
+import { openSessionWs } from "@/ws/sessionWs";
 
 
 const StartTitle = styled(Title)`
@@ -24,15 +28,109 @@ const HomePage = () => {
 	const [sessionStatus, setSessionStatus] = useState<
 		"false" | "pending" | "received" | "connected"
 	>("false");
+	const [toast, setToast] = useState<string | null>(null);
+	const [sessionId, setSessionId] = useState<number | null>(null);
+	const [isWsConnected, setIsWsConnected] = useState(false);
+	const wsHandleRef = useRef<ReturnType<typeof openSessionWs> | null>(null);
 	const partnerName = "상대방";
 
-	const handleShareStart = () => {
-		setSessionStatus("connected");
-		// api call
+	const cleanupWs = useCallback(() => {
+		console.log("[home] WS cleanup");
+		wsHandleRef.current?.close();
+		wsHandleRef.current = null;
+		setIsWsConnected(false);
+	}, []);
+
+	const openWsConnection = useCallback(
+		(sessionId: number) => {
+			const token = localStorage.getItem("accessToken");
+			if (!token) {
+				setToast("토큰이 없어 위치 공유를 시작할 수 없습니다.");
+				return;
+			}
+
+			cleanupWs();
+			const handler = openSessionWs(sessionId, token, {
+				onOpen: () => {
+					console.log("[home] WS open", handler?.url, "sessionId", sessionId);
+					setIsWsConnected(true);
+					setSessionStatus("connected");
+				},
+				onClose: () => {
+					console.log("[home] WS closed sessionId", sessionId);
+					setIsWsConnected(false);
+					setSessionStatus("false");
+				},
+				onError: () => {
+					console.error("[home] WS error sessionId", sessionId);
+					setIsWsConnected(false);
+				},
+				onMessage: (data) => {
+					console.log("[home] WS msg", data);
+				},
+			});
+			wsHandleRef.current = handler;
+		},
+		[cleanupWs],
+	);
+
+	const startSessionFlow = useCallback(async () => {
+		console.log("[home] 세션 흐름 시작");
+		try {
+			const session = await createSession();
+			console.log("[home] 세션 생성 성공", session.id);
+			setSessionId(session.id);
+			setSessionStatus("pending");
+			openWsConnection(session.id);
+		} catch (err) {
+			console.error("[home] 세션 생성 실패", err);
+			setToast("세션을 시작할 수 없습니다.");
+		}
+	}, [openWsConnection]);
+
+	const handleCheckPartnerSession = async () => {
+		console.log("[home] 파트너 세션 조회");
+		try {
+			const active = await getActiveSession();
+			if (active?.sessionId) {
+				setToast("파트너가 세션을 열었습니다. 연결합니다.");
+				setSessionId(active.sessionId);
+				setSessionStatus("received");
+				openWsConnection(active.sessionId);
+			} else {
+				setToast("파트너가 위치 공유를 열지 않았습니다.");
+			}
+		} catch (error) {
+			console.error("[home] partner session 확인 실패", error);
+			setToast("파트너 세션 확인에 실패했습니다.");
+		}
+	};
+
+	const handleShareStart = async () => {
+		console.log("[home] 위치 공유 시작 버튼 클릭");
+		try {
+			const response = await notifyPartnerLocationShare();
+			console.log("[home] noti/partner 응답", response.status, response.data);
+			setToast("상대방에게 위치 공유 알림을 보냈어요");
+		} catch (error) {
+			console.error("[home] noti/partner 실패", error);
+			setToast("위치 공유 알림 전송에 실패했습니다");
+		} finally {
+			await startSessionFlow();
+		}
 	};
 	const handleShareStop = () => {
+		console.log("[home] 위치 공유 중지");
+		cleanupWs();
 		setSessionStatus("false");
+		setSessionId(null);
 	};
+
+	useEffect(() => {
+		return () => {
+			cleanupWs();
+		};
+	}, [cleanupWs]);
 
 	return (
 		<PinkContainer style={{ paddingBottom: 100 }}>
@@ -76,6 +174,18 @@ const HomePage = () => {
 							실시간으로 ${partnerName}님에게 가는 길을 기록하고 있어요
 						</Explanation>
 					</>
+				) : sessionStatus === "received" ? (
+					<>
+						<img
+							src={SendIcon}
+							alt="an icon of an airplane flying"
+							style={{ width: 128 }}
+						/>
+						<StartTitle>${partnerName}님의 위치 공유 활성화</StartTitle>
+						<Explanation>
+							파트너가 위치 공유를 시작했습니다
+						</Explanation>
+					</>
 				) : (
 					<>
 						<img
@@ -89,12 +199,22 @@ const HomePage = () => {
 						</Explanation>
 					</>
 				)}
+				{sessionId && sessionStatus !== "false" && (
+					<Explanation style={{ fontWeight: 600 }}>
+						{`세션 ID: ${sessionId} · WS ${isWsConnected ? "연결됨" : "대기 중"}`}
+					</Explanation>
+				)}
 
 				{sessionStatus === "false" ? (
-					<PinkButton onClick={handleShareStart}>
-						<IoPlayOutline size={20} color="white" />
-						위치 공유 시작
-					</PinkButton>
+					<>
+						<PinkButton onClick={handleShareStart}>
+							<IoPlayOutline size={20} color="white" />
+							위치 공유 시작
+						</PinkButton>
+						<GrayButton onClick={handleCheckPartnerSession}>
+							파트너 위치 공유 확인
+						</GrayButton>
+					</>
 				) : (
 					<Col style={{ gap: 20, width: "100%" }}>
 						<PinkButton>
@@ -109,6 +229,7 @@ const HomePage = () => {
 				)}
 			</Wrapper>
 			<ToggleTab />
+			{toast && <Toast message={toast} onClose={() => setToast(null)} />}
 		</PinkContainer>
 	);
 };

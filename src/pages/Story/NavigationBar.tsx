@@ -64,15 +64,14 @@ const Tab = styled.button<{ $active: boolean; theme: ThemeProps }>`
   font-weight: 600;
   transition: all 0.2s ease;
   width: 100%;
-  background-color: ${(props) => (props.$active ? props.theme.colors.primary : props.theme.colors.gray )};
-  color: ${(props) => (props.$active ? "#ffffff" : props.theme.colors.darkgray )};
+  background-color: ${(props) => (props.$active ? props.theme.colors.primary : props.theme.colors.gray)};
+  color: ${(props) => (props.$active ? "#ffffff" : props.theme.colors.darkgray)};
   outline: none;
 
   &:focus {
     outline: none;
   }
 `;
-
 
 type TabType = "story" | "map" | "list";
 
