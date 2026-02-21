@@ -304,12 +304,15 @@ function SessionMapInner() {
 	useEffect(() => {
 		if (!ready) return;
 		if (!history || history.length === 0) return;
-		if (!myUserId) return;              // 내 userId 없으면 분리 불가
-		if (hydratedRef.current) return;    // ✅ 새로고침/초기 진입 때 한 번만 복원
+		if (!myUserId) return; // 내 userId 없으면 분리 불가
+		if (hydratedRef.current) return; // ✅ 새로고침/초기 진입 때 한 번만 복원
 
 		const points = [...history]
 			.filter((p) => p.lat != null && p.lng != null)
-			.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+			.sort(
+				(a, b) =>
+					new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+			);
 
 		const myPoints = points
 			.filter((p) => p.userId === myUserId && p.type === "POINT")

@@ -143,61 +143,64 @@ export function SessionProvider({
 		setIsWsConnected(false);
 	}, [clearSendInterval, stopWatchPosition]);
 
-	const connectWs = useCallback((sid: number) => {
-		disconnectWs();
+	const connectWs = useCallback(
+		(sid: number) => {
+			disconnectWs();
 
-		const token = localStorage.getItem("accessToken");
-		if (!token) {
-			console.warn("No accessToken; skip ws connect");
-			return;
-		}
+			const token = localStorage.getItem("accessToken");
+			if (!token) {
+				console.warn("No accessToken; skip ws connect");
+				return;
+			}
 
-		wsRef.current = openSessionWs(sid, token ?? "", {
-			onOpen: () => {
-				setIsWsConnected(true);
-				startWatchPosition();
-				startSendInterval();
-			},
-			onClose: () => {
-				setIsWsConnected(false);
-				clearSendInterval();
-				stopWatchPosition();
-			},
-			onError: () => {
-				setIsWsConnected(false);
-				clearSendInterval();
-				stopWatchPosition();
-			},
-			onMessage: (msg: any) => {
-				if (!msg || typeof msg !== "object") return;
+			wsRef.current = openSessionWs(sid, token ?? "", {
+				onOpen: () => {
+					setIsWsConnected(true);
+					startWatchPosition();
+					startSendInterval();
+				},
+				onClose: () => {
+					setIsWsConnected(false);
+					clearSendInterval();
+					stopWatchPosition();
+				},
+				onError: () => {
+					setIsWsConnected(false);
+					clearSendInterval();
+					stopWatchPosition();
+				},
+				onMessage: (msg: any) => {
+					if (!msg || typeof msg !== "object") return;
 
-				switch (msg.type) {
-					case "POINT":
-						setPartnerPos({ lat: msg.lat, lng: msg.lng });
-						void reloadHistory();
-						break;
-					case "MEET_CONFIRM":
-						void reloadStatus();
-						void reloadHistory();
-						break;
-					case "CANCEL":
-						void reloadStatus();
-						break;
-					case "ERROR":
-						console.error("[WS ERROR]", msg.message);
-						break;
-				}
-			},
-		});
-	}, [
-		disconnectWs,
-		clearSendInterval,
-		stopWatchPosition,
-		startWatchPosition,
-		startSendInterval,
-		reloadHistory,
-		reloadStatus,
-	]);
+					switch (msg.type) {
+						case "POINT":
+							setPartnerPos({ lat: msg.lat, lng: msg.lng });
+							void reloadHistory();
+							break;
+						case "MEET_CONFIRM":
+							void reloadStatus();
+							void reloadHistory();
+							break;
+						case "CANCEL":
+							void reloadStatus();
+							break;
+						case "ERROR":
+							console.error("[WS ERROR]", msg.message);
+							break;
+					}
+				},
+			});
+		},
+		[
+			disconnectWs,
+			clearSendInterval,
+			stopWatchPosition,
+			startWatchPosition,
+			startSendInterval,
+			reloadHistory,
+			reloadStatus,
+		],
+	);
 
 	// ---------------------------
 	// Actions (요구사항 5,7,2,3)

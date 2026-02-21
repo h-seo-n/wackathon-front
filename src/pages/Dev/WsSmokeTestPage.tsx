@@ -126,7 +126,7 @@ export default function WsSmokeTestPage() {
 					</select>
 				</label>
 
-				<button type='button' onClick={onCreateAndConnect}>
+				<button type="button" onClick={onCreateAndConnect}>
 					2) Create session + WS connect
 				</button>
 
@@ -139,14 +139,22 @@ export default function WsSmokeTestPage() {
 					style={{ width: 140 }}
 				/>
 
-				<button type='button' onClick={onAcceptAndConnect}>
+				<button type="button" onClick={onAcceptAndConnect}>
 					3) Accept session + WS connect
 				</button>
 
-				<button type='button' onClick={onCheckStatus}>Check status</button>
-				<button type='button' onClick={sendPoint}>Send POINT</button>
-				<button type='button' onClick={sendCancel}>Send CANCEL</button>
-				<button type='button' onClick={closeWs}>Close WS</button>
+				<button type="button" onClick={onCheckStatus}>
+					Check status
+				</button>
+				<button type="button" onClick={sendPoint}>
+					Send POINT
+				</button>
+				<button type="button" onClick={sendCancel}>
+					Send CANCEL
+				</button>
+				<button type="button" onClick={closeWs}>
+					Close WS
+				</button>
 			</div>
 
 			<div

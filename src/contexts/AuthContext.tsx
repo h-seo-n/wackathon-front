@@ -1,48 +1,60 @@
-import { createContext, useState, useEffect, type ReactNode, useContext } from "react";
-import type { LoginRequest, SignupRequest, User } from "@/utils/types/authTypes";
+import {
+	createContext,
+	useState,
+	useEffect,
+	type ReactNode,
+	useContext,
+} from "react";
+import type {
+	LoginRequest,
+	SignupRequest,
+	User,
+} from "@/utils/types/authTypes";
 import * as auth from "@/api/auth";
 import { getUser, uploadProfileImg } from "@/api/users";
 
 interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  login: (input: LoginRequest) => void;
-  signup: (input: SignupRequest) => void;
-  logout: () => void;
-  setProfileImg: (file: File) => Promise<{profileImageUrl: string;} | undefined>;
+	user: User | null;
+	isLoading: boolean;
+	login: (input: LoginRequest) => void;
+	signup: (input: SignupRequest) => void;
+	logout: () => void;
+	setProfileImg: (
+		file: File,
+	) => Promise<{ profileImageUrl: string } | undefined>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  useEffect(() => {
-    const checkAuth = async () => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            setIsLoading(false);
-            return;
-        }
-        try {
-            const newUser =  await getUser();
-            setUser(newUser);
-        } catch {
-            localStorage.removeItem("accessToken");
-            setUser(null);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    checkAuth();
-  }, []);
+	const [user, setUser] = useState<User | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
 
-  	/**
+	useEffect(() => {
+		const checkAuth = async () => {
+			const token = localStorage.getItem("accessToken");
+			if (!token) {
+				setIsLoading(false);
+				return;
+			}
+			try {
+				const newUser = await getUser();
+				setUser(newUser);
+			} catch {
+				localStorage.removeItem("accessToken");
+				setUser(null);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+		checkAuth();
+	}, []);
+
+	/**
 	 * Login Function
 	 */
 	const login = async (loginInput: LoginRequest) => {
-        setIsLoading(true);
+		setIsLoading(true);
 		try {
 			const newUser = await auth.login(loginInput);
 			setUser(newUser);
@@ -50,38 +62,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 			console.error("Login failed:", err);
 			throw err;
 		} finally {
-            setIsLoading(false);
-        }
+			setIsLoading(false);
+		}
 	};
 
 	/**
 	 * Signup Function
 	 */
 	const signup = async (input: SignupRequest) => {
-        setIsLoading(true);
+		setIsLoading(true);
 		try {
-    		const userData = await auth.signup(input);
+			const userData = await auth.signup(input);
 			setUser(userData);
 		} catch (err) {
 			console.error("Signup failed:", err);
 			throw err;
 		} finally {
-            setIsLoading(false);
-        }
+			setIsLoading(false);
+		}
 	};
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem("accessToken");
-    }
+	const logout = () => {
+		setUser(null);
+		localStorage.removeItem("accessToken");
+	};
 
-    const setProfileImg = async (file: File) => {
-
-        try {
+	const setProfileImg = async (file: File) => {
+		try {
 			const url = await uploadProfileImg(file);
 			const updatedUser = await getUser();
 			setUser(updatedUser);
 
-            return url;
+			return url;
 		} catch (error) {
 			console.error("server error at setting profile image", error);
 		}
@@ -100,13 +111,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 			{children}
 		</AuthContext.Provider>
 	);
-
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-  return context;
+	const context = useContext(AuthContext);
+	if (!context) {
+		throw new Error("useAuth must be used within AuthProvider");
+	}
+	return context;
 };

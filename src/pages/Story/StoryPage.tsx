@@ -5,7 +5,7 @@ import NavigationBar from "./NavigationBar";
 import MeetingBanner from "../Home/MeetingBanner";
 import type { DashboardProps } from "./Dashboard";
 import Dashboard from "./Dashboard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { MeetingRecord } from "./MeetingList";
 import MeetingList from "./MeetingList";
@@ -36,20 +36,22 @@ const StoryPage = () => {
 	const navigate = useNavigate();
 
 	const {
-		history,
-		fetchHistoryBySessionId,
+		globalHistory,
+		// history,
+		histories,
+		// fetchHistoryBySessionId,
+		fetchHistories,
+		fetchGlobalHistory,
 		isLoadingHistory,
 		error,
 	} = useHistory();
 
-	// TODO: 실제로는 "선택된 만남(sessionId)"로 바꿔줘야 함
-	const sessionIdForMap = 1;
-
 	// ✅ map 탭 진입 시 히스토리 로드
 	useEffect(() => {
 		if (activeTab !== "map") return;
-		void fetchHistoryBySessionId(sessionIdForMap);
-	}, [activeTab, fetchHistoryBySessionId]);
+		void fetchGlobalHistory();
+		void fetchHistories();
+	}, [activeTab, fetchGlobalHistory, fetchHistories]);
 
 	// current month 가져오기, 만남 횟수 가져오기
 	const title = "11월, 우리는 3번 만났어요";
@@ -62,14 +64,58 @@ const StoryPage = () => {
 		fastestMeeting: 25,
 	};
 
-	// meeting list 더미데이터
-	const meetings: MeetingRecord[] = [
-		{ date: "2월 15일 (일)", time: "오전 12:00", duration: 32, distance: 2400 },
-		{ date: "2월 12일 (목)", time: "오전 12:00", duration: 25, distance: 1800 },
-		{ date: "2월 8일 (일)", time: "오전 12:00", duration: 41, distance: 3200 },
-	];
+	// StoryPage.tsx 내부 (혹은 utils로 분리)
 
-	
+	const meetings = useMemo(() => {
+		const formatKoreanDateTime = (iso: string) => {
+			const d = new Date(iso); // "2026-02-21T19:59:55.237Z"
+
+			// ✅ 날짜: 2월 21일 (금)
+			const dateStr = d.toLocaleDateString("ko-KR", {
+				month: "numeric",
+				day: "numeric",
+				weekday: "short",
+				timeZone: "Asia/Seoul",
+			});
+
+			// ✅ 시간: 오후 4:59
+			const timeStr = d.toLocaleTimeString("ko-KR", {
+				hour: "numeric",
+				minute: "2-digit",
+				hour12: true,
+				timeZone: "Asia/Seoul",
+			});
+
+			// dateStr이 "2. 21. (금)"처럼 나올 수 있어서 형식 맞추기
+			const cleanedDate = dateStr
+				.replace(/\./g, "")
+				.replace(/\s+/g, " ")
+				.trim(); // "2 21 (금)" 형태
+
+			const parts = cleanedDate.split(" ");
+			const month = parts[0];
+			const day = parts[1];
+			const weekday = parts[2] ?? "";
+
+			return {
+				date: `${month}월 ${day}일 ${weekday}`, // "2월 21일 (금)"
+				time: timeStr, // "오후 4:59"
+			};
+		};
+
+		return [...histories]
+			.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+			.map((h) => {
+				const { date, time } = formatKoreanDateTime(h.date);
+
+				return {
+					date,
+					time,
+					duration: h.travelMinutes,
+					distance: h.distance,
+				};
+			});
+	}, [histories]);
 
 	return (
 		<WhiteContainer>
@@ -97,8 +143,9 @@ const StoryPage = () => {
 							</div>
 						)}
 						{/* ✅ MapHistory에 history를 props로 전달 */}
-						<MapHistory history={history} />
-					</>				) : (
+						<MapHistory history={globalHistory} />
+					</>
+				) : (
 					<MeetingList meetings={meetings} />
 				)}
 			</GrayContent>

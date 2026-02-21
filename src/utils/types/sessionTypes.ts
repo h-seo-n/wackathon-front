@@ -16,10 +16,23 @@ export type SessionPoint = {
 	text?: string | null;
 };
 
+interface HistoryDto {
+	id: number;
+	date: string;
+	travelMinutes: number;
+	distance: number;
+}
+
+export interface HistoryListResponse {
+	historyList: HistoryDto[];
+}
+
 export interface BasePointHistory {
 	createdAt: string;
 	lat: number;
 	lng: number;
+	phothPath: string;
+	text: string;
 }
 
 export interface PhotoHistory extends BasePointHistory {
@@ -51,9 +64,8 @@ export interface SessionHistoryResponse {
 	user2: PointHistoryDto[];
 }
 
-export interface HistoryResponse {
-	sessionId: number;
-	points: SessionPoint[];
+export interface SessionPointResponse {
+	pointHistoryList: PointHistoryDto[];
 }
 
 export type LatLng = { lat: number; lng: number };

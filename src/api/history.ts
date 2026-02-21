@@ -1,5 +1,13 @@
 import api from "./axios";
-import type { SessionHistoryResponse } from "../utils/types/sessionTypes";
+import type {
+	HistoryListResponse,
+	SessionHistoryResponse,
+} from "../utils/types/sessionTypes";
+
+export const getHistory = async (): Promise<SessionHistoryResponse> => {
+	const res = await api.get<SessionHistoryResponse>("/api/history");
+	return res.data;
+};
 
 export const getHistoryBySessionId = async (
 	sessionId: number,
@@ -8,11 +16,7 @@ export const getHistoryBySessionId = async (
 	return res.data;
 };
 
-export const listHistory = async (params: {
-	date: string; //YYYYMMDD / YYYYMM / YYYY
-}): Promise<SessionHistoryResponse[]> => {
-	const res = await api.get<SessionHistoryResponse[]>(`/history/list`, {
-		params,
-	});
+export const listHistory = async (): Promise<HistoryListResponse> => {
+	const res = await api.get<HistoryListResponse>(`/history/list`);
 	return res.data;
 };
