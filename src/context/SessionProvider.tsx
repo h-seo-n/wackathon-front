@@ -14,7 +14,6 @@ import {
 	getSessionStatus,
 	uploadSessionPhoto,
 	createSession,
-	acceptSession,
 } from "../api/session";
 import type {
 	SessionPoint,
@@ -24,7 +23,6 @@ import type {
 	FinishSessionRequest,
 } from "@/utils/types/sessionTypes";
 import api from "../api/axios";
-import { TokenService } from "../api/tokenService";
 import { openSessionWs, type WsPayload } from "../ws/sessionWs";
 
 const SessionContext = createContext<SessionState | null>(null);
@@ -85,16 +83,6 @@ export function SessionProvider({
 	sessionId: initialSessionId,
 	children,
 }: Props) {
-	/**
-	 * env 예시:
-	 * - VITE_WS_DOMAIN = "waffle-project-dev-server.xyz"  (또는 "wss://..." 전체)
-	 * - 또는 VITE_WS_URL = "wss://waffle-project-dev-server.xyz"
-	 *
-	 * 아래 buildWsUrl에서 알아서 합침.
-	 */
-	const WS_BASE = (import.meta.env.VITE_WS_URL as string) || ""; // 예: "wss://domain"
-	// 만약 VITE_WS_URL이 없고 VITE_API_URL만 있다면, 필요시 거기서 도메인 파싱해도 됨(지금은 생략)
-
 	const [sessionId, setSessionId] = useState<number>(initialSessionId);
 
 	const [status, setStatus] = useState<SessionStatus | null>(null);
@@ -129,27 +117,6 @@ export function SessionProvider({
 	// (api/session.ts에 따로 함수로 빼는 게 베스트)
 	const acceptSession = useCallback(async (sid: number) => {
 		await api.post(`/sessions/${sid}/accept`);
-	}, []);
-
-	// ---------------------------
-	// WS URL builder
-	// ---------------------------
-
-	const buildWsUrl = useCallback((sid: number) => {
-		const token = localStorage.getItem("accessToken");
-		if (!token) {
-			// 토큰 없으면 연결해도 인증 실패 가능성이 큼
-			// (원하면 throw 처리)
-			console.warn("[WS] token missing");
-		}
-
-		// WS_BASE가 "wss://domain" 또는 "wss://domain/" 라고 가정
-		const base = WS_BASE.replace(/\/+$/, "");
-		// 스펙: wss://<domain>/ws/session?sessionId=123&token=<JWT>
-		const url = `${base}/ws/session?sessionId=${encodeURIComponent(
-			String(sid),
-		)}&token=${encodeURIComponent(token || "")}`;
-		return url;
 	}, []);
 
 	// ---------------------------
@@ -219,8 +186,11 @@ export function SessionProvider({
 	const connectWs = useCallback((sid: number) => {
 		disconnectWs();
 
-		const token = TokenService.getToken();
-		if (!token) console.warn("[WS] token missing (TokenService)");
+		const token = localStorage.getItem("accessToken");
+		if (!token) {
+			console.warn("No accessToken; skip ws connect");
+			return;
+		}
 
 		wsRef.current = openSessionWs(sid, token ?? "", {
 			onOpen: () => {
