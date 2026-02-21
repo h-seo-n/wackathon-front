@@ -16,7 +16,7 @@ import MeetingBanner from "./MeetingBanner";
 import styled from "styled-components";
 import Toast from "@/components/Toast";
 import { notifyPartnerLocationShare } from "@/api/noti";
-import { createSession, getActiveSession } from "@/api/session";
+import { createSession, getActiveSession, acceptSession, getSessionStatus } from "@/api/session";
 import { openSessionWs } from "@/ws/sessionWs";
 import { useNavigate } from "react-router-dom";
 
@@ -94,9 +94,17 @@ const HomePage = () => {
 		try {
 			const active = await getActiveSession();
 			if (active?.sessionId) {
+				const sid = active.sessionId;
 				setToast("파트너가 세션을 열었습니다. 연결합니다.");
-				setSessionId(active.sessionId);
+				setSessionId(sid);
 				setSessionStatus("received");
+				
+				const st = await getSessionStatus(sid);
+				if (st.status === "PENDING") {
+					await acceptSession(sid);
+					console.log("[home] accepted:", sid);
+				}
+				
 				openWsConnection(active.sessionId);
 			} else {
 				setToast("파트너가 위치 공유를 열지 않았습니다.");
