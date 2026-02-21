@@ -20,6 +20,7 @@ import Toast from "@/components/Toast";
 import { notifyPartnerLocationShare } from "@/api/noti";
 import { createSession, getActiveSession } from "@/api/session";
 import { openSessionWs } from "@/ws/sessionWs";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
 	return (
@@ -78,6 +79,7 @@ const StartTitle = styled(Title)`
 `;
 
 const HomePage = () => {
+	const navigate = useNavigate();
 	const [sessionStatus, setSessionStatus] = useState<
 		"false" | "pending" | "received" | "connected"
 	>("false");
@@ -116,7 +118,6 @@ const HomePage = () => {
 				onClose: () => {
 					console.log("[home] WS closed sessionId", sessionId);
 					setIsWsConnected(false);
-					setSessionStatus("false");
 				},
 				onError: () => {
 					console.error("[home] WS error sessionId", sessionId);
@@ -181,6 +182,13 @@ const HomePage = () => {
 		cleanupWs();
 		setSessionStatus("false");
 		setSessionId(null);
+	};
+	const handleOpenLiveMap = () => {
+		if (!sessionId) {
+			setToast("세션이 없어서 지도를 열 수 없습니다.");
+			return;
+		}
+		navigate(`/live-map/${sessionId}`);
 	};
 
 	useEffect(() => {
@@ -275,7 +283,7 @@ const HomePage = () => {
 					</>
 				) : (
 					<Col style={{ gap: 20, width: "100%" }}>
-						<PinkButton>
+						<PinkButton onClick={handleOpenLiveMap}>
 							<IoMapOutline size={20} color="white" />
 							실시간 위치 보기
 						</PinkButton>
