@@ -1,7 +1,7 @@
 import axios from "axios";
 import { TokenService } from "./tokenService";
 
-const API_URL = import.meta.env.VITE_API_URL || "";
+const API_URL = import.meta.env.VITE_API_URL || "https://waffle-project-dev-server.xyz/api";
 
 const api = axios.create({
 	baseURL: API_URL,
