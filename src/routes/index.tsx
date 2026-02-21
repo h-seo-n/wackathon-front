@@ -1,6 +1,4 @@
 import { LoginPage, SignupPage } from '@/pages/Auth/AuthPage';
-import FcmTestPage from '@/pages/Dev/FcmTestPage';
-import WsSmokeTestPage from '@/pages/Dev/WsSmokeTestPage';
 import HomePage from '@/pages/Home/Home';
 import PartnerPage from '@/pages/Partner/PartnerPage';
 import StoryPage from '@/pages/Story/StoryPage';
@@ -15,8 +13,6 @@ export const router = createBrowserRouter([
             { path: '/signup', element: <SignupPage /> },
             { path: '/partner', element: <PartnerPage />},
             { path: '/home', element: <HomePage />},
-            { path: '/fcm-test', element: <FcmTestPage />},
-            { path: '/ws-test', element: <WsSmokeTestPage />},
             { path: '/story', element: <StoryPage />},
         ],
     },

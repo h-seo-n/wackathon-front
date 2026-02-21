@@ -85,7 +85,7 @@ export const SignupPage = () => {
                     <InputLabel style={{ textAlign: "start" }}>비밀번호</InputLabel>
                     <TextInput type="password" onChange={(e) => setPassword(e.target.value)}/>
                 </Col>
-                <PinkButton onClick={()=>handleSignup}>회원가입</PinkButton>
+                <PinkButton onClick={handleSignup}>회원가입</PinkButton>
                 <TextButton onClick={()=> { navigate('/login'); } }>계정이 있으신가요? 로그인</TextButton>
             </Col>
         </Wrapper>

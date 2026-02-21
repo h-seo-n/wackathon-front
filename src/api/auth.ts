@@ -3,7 +3,7 @@ import api from "./axios";
 
 
 export const signup = async (signupInput: SignupRequest) => {
-	const response = await api.post<AuthResponse>("/auth/register", signupInput);
+	const response = await api.post<AuthResponse>("/auth/signup", signupInput);
 
     localStorage.setItem("accessToken", response.data.access_token);
 
