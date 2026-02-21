@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { SessionProvider, useSession } from "../context/SessionProvider";
 import type { LatLng } from "../utils/types/sessionTypes";
 import { useAuth } from "../contexts/AuthContext";
+import { Navigate, useParams } from "react-router-dom";
 
 declare global {
 	interface Window {
@@ -37,11 +38,13 @@ function createCircleMarker(color: string, size = 20) {
 	};
 }
 
-type Props = { sessionId: number };
+export default function LiveMapPage() {
+	const { sessionId } = useParams();
+	const id = Number(sessionId);
+	if (!Number.isFinite(id) || id <= 0) return <Navigate to="/home" replace />;
 
-export default function LiveMapPage({ sessionId }: Props) {
 	return (
-		<SessionProvider sessionId={sessionId}>
+		<SessionProvider sessionId={id}>
 			<SessionMapInner />
 		</SessionProvider>
 	);

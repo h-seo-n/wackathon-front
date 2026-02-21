@@ -19,8 +19,7 @@ export const router = createBrowserRouter([
             { path: "/ws-test", element: <WsSmokeTestPage /> },
             { path: "/story", element: <StoryPage /> },
             { path: "/fcm-test", element: <FcmTestPage /> },
-            // sessionId는 임시값입니다. 실제로는 로그인한 유저의 세션 ID를 넘겨주어야 합니다.
-            { path: "/LiveMap", element: <LiveMapPage sessionId={1} /> },
+            { path: "/live-map/:sessionId", element: <LiveMapPage /> },
 		],
 	},
 ]);
