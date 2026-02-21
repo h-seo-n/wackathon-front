@@ -347,6 +347,8 @@ export function SessionProvider({
 			return;
 		}
 
+		if (isWsConnected) return;
+
 		connectWs(sessionId);
 	}, [status, sessionId, connectWs, disconnectWs, isWsConnected]);
 
