@@ -21,7 +21,6 @@ import { notifyPartnerLocationShare } from "@/api/noti";
 import { createSession, getActiveSession, acceptSession, getSessionStatus } from "@/api/session";
 import { openSessionWs } from "@/ws/sessionWs";
 import { useNavigate } from "react-router-dom";
-import api from "@/api/axios";
 
 const Header = () => {
 	return (
