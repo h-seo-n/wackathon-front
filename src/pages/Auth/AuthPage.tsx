@@ -10,84 +10,113 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 export const LoginPage = () => {
-    const [email, setEmail] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-      const { login } = useAuth();
+	const [email, setEmail] = useState<string>("");
+	const [password, setPassword] = useState<string>("");
+	const { login } = useAuth();
 
-    const navigate = useNavigate();
+	const navigate = useNavigate();
 
-    const handleLogin = async () => {
-        try {
-        await login({ email, password });
-        navigate("/home");
-        } catch {
-        alert("로그인에 실패했습니다.");
-        }
-    };
+	const handleLogin = async () => {
+		try {
+			await login({ email, password });
+			navigate("/home");
+		} catch {
+			alert("로그인에 실패했습니다.");
+		}
+	};
 
-    return (
-        <PinkContainer>
-        <Wrapper>
-            <img src={HeartIcon} alt="a heart icon" style={{ width: 64 }}/>
-            <Title>로그인</Title>
-            <Explanation>만나기까지의 기다림도 설렘이 될 수 있게</Explanation>
-            <Col style={{ gap: 16, width: '100%', marginTop: 30 }}>
-                <Col style={{ gap: 4 }}>
-                    <InputLabel style={{ textAlign: "start" }}>이메일</InputLabel>
-                    <TextInput type="email" onChange={(e) => setEmail(e.target.value)} />
-                </Col>
-                <Col style={{ gap: 4 }}>
-                    <InputLabel style={{ textAlign: "start" }}>비밀번호</InputLabel>
-                    <TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </Col>
-                <PinkButton onClick={handleLogin}>로그인</PinkButton>
-                <TextButton onClick={()=> { navigate('/signup'); } }>계정이 없으신가요? 회원가입</TextButton>
-            </Col>
-        </Wrapper>
-        </PinkContainer>
-    )
-}
+	return (
+		<PinkContainer>
+			<Wrapper>
+				<img src={HeartIcon} alt="a heart icon" style={{ width: 64 }} />
+				<Title>로그인</Title>
+				<Explanation>만나기까지의 기다림도 설렘이 될 수 있게</Explanation>
+				<Col style={{ gap: 16, width: "100%", marginTop: 30 }}>
+					<Col style={{ gap: 4 }}>
+						<InputLabel style={{ textAlign: "start" }}>이메일</InputLabel>
+						<TextInput
+							type="email"
+							onChange={(e) => setEmail(e.target.value)}
+						/>
+					</Col>
+					<Col style={{ gap: 4 }}>
+						<InputLabel style={{ textAlign: "start" }}>비밀번호</InputLabel>
+						<TextInput
+							type="password"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+						/>
+					</Col>
+					<PinkButton onClick={handleLogin}>로그인</PinkButton>
+					<TextButton
+						onClick={() => {
+							navigate("/signup");
+						}}
+					>
+						계정이 없으신가요? 회원가입
+					</TextButton>
+				</Col>
+			</Wrapper>
+		</PinkContainer>
+	);
+};
 
 export const SignupPage = () => {
-    const navigate = useNavigate();
-    const { signup } = useAuth();
-    const [nickname, setNickname] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+	const navigate = useNavigate();
+	const { signup } = useAuth();
+	const [nickname, setNickname] = useState("");
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 
-  const handleSignup = async () => {
-    try {
-      await signup({ nickname, email, password });
-      navigate("/home");
-    } catch {
-      alert("회원가입에 실패했습니다.");
-    }
-  };
+	const handleSignup = async () => {
+		try {
+			await signup({ nickname, email, password });
+			navigate("/home");
+		} catch {
+			alert("회원가입에 실패했습니다.");
+		}
+	};
 
-
-    return (
-        <PinkContainer>
-        <Wrapper>
-            <img src={HeartIcon} alt="a heart icon" style={{width: 64}}/>
-            <Title>회원가입</Title>
-            <Explanation>만나기까지의 기다림도 설렘이 될 수 있게</Explanation>
-            <Col style={{ gap: 16, width: '100%', marginTop: 50 }}>
-                <Col style={{ gap: 4 }}>
-                    <InputLabel style={{ textAlign: "start" }}>이름</InputLabel>
-                    <TextInput type="text" value={nickname} onChange={(e) => setNickname(e.target.value)}/>
-                </Col>
-                <Col style={{ gap: 4 }}>
-                    <InputLabel style={{ textAlign: "start" }}>이메일</InputLabel>
-                    <TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                </Col>
-                <Col style={{ gap: 4 }}>
-                    <InputLabel style={{ textAlign: "start" }}>비밀번호</InputLabel>
-                    <TextInput type="password" onChange={(e) => setPassword(e.target.value)}/>
-                </Col>
-                <PinkButton onClick={handleSignup}>회원가입</PinkButton>
-                <TextButton onClick={()=> { navigate('/login'); } }>계정이 있으신가요? 로그인</TextButton>
-            </Col>
-        </Wrapper>
-        </PinkContainer>
-    )
-}
+	return (
+		<PinkContainer>
+			<Wrapper>
+				<img src={HeartIcon} alt="a heart icon" style={{ width: 64 }} />
+				<Title>회원가입</Title>
+				<Explanation>만나기까지의 기다림도 설렘이 될 수 있게</Explanation>
+				<Col style={{ gap: 16, width: "100%", marginTop: 50 }}>
+					<Col style={{ gap: 4 }}>
+						<InputLabel style={{ textAlign: "start" }}>이름</InputLabel>
+						<TextInput
+							type="text"
+							value={nickname}
+							onChange={(e) => setNickname(e.target.value)}
+						/>
+					</Col>
+					<Col style={{ gap: 4 }}>
+						<InputLabel style={{ textAlign: "start" }}>이메일</InputLabel>
+						<TextInput
+							type="email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+						/>
+					</Col>
+					<Col style={{ gap: 4 }}>
+						<InputLabel style={{ textAlign: "start" }}>비밀번호</InputLabel>
+						<TextInput
+							type="password"
+							onChange={(e) => setPassword(e.target.value)}
+						/>
+					</Col>
+					<PinkButton onClick={handleSignup}>회원가입</PinkButton>
+					<TextButton
+						onClick={() => {
+							navigate("/login");
+						}}
+					>
+						계정이 있으신가요? 로그인
+					</TextButton>
+				</Col>
+			</Wrapper>
+		</PinkContainer>
+	);
+};
