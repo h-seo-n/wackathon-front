@@ -5,7 +5,7 @@ import type {
 } from "../utils/types/sessionTypes";
 
 export const getHistory = async (): Promise<SessionHistoryResponse> => {
-	const res = await api.get<SessionHistoryResponse>("/api/history");
+	const res = await api.get<SessionHistoryResponse>("/history");
 	return res.data;
 };
 

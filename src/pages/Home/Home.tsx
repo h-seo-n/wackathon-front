@@ -16,8 +16,9 @@ import MeetingBanner from "./MeetingBanner";
 import styled from "styled-components";
 import Toast from "@/components/Toast";
 import { notifyPartnerLocationShare } from "@/api/noti";
-import { createSession, getActiveSession } from "@/api/session";
+import { createSession, getActiveSession, acceptSession, getSessionStatus } from "@/api/session";
 import { openSessionWs } from "@/ws/sessionWs";
+import { useNavigate } from "react-router-dom";
 
 
 const StartTitle = styled(Title)`
@@ -25,6 +26,7 @@ const StartTitle = styled(Title)`
 `;
 
 const HomePage = () => {
+	const navigate = useNavigate();
 	const [sessionStatus, setSessionStatus] = useState<
 		"false" | "pending" | "received" | "connected"
 	>("false");
@@ -59,7 +61,6 @@ const HomePage = () => {
 				onClose: () => {
 					console.log("[home] WS closed sessionId", sessionId);
 					setIsWsConnected(false);
-					setSessionStatus("false");
 				},
 				onError: () => {
 					console.error("[home] WS error sessionId", sessionId);
@@ -93,9 +94,17 @@ const HomePage = () => {
 		try {
 			const active = await getActiveSession();
 			if (active?.sessionId) {
+				const sid = active.sessionId;
 				setToast("파트너가 세션을 열었습니다. 연결합니다.");
-				setSessionId(active.sessionId);
+				setSessionId(sid);
 				setSessionStatus("received");
+				
+				const st = await getSessionStatus(sid);
+				if (st.status === "PENDING") {
+					await acceptSession(sid);
+					console.log("[home] accepted:", sid);
+				}
+				
 				openWsConnection(active.sessionId);
 			} else {
 				setToast("파트너가 위치 공유를 열지 않았습니다.");
@@ -124,6 +133,13 @@ const HomePage = () => {
 		cleanupWs();
 		setSessionStatus("false");
 		setSessionId(null);
+	};
+	const handleOpenLiveMap = () => {
+		if (!sessionId) {
+			setToast("세션이 없어서 지도를 열 수 없습니다.");
+			return;
+		}
+		navigate(`/live-map/${sessionId}`);
 	};
 
 	useEffect(() => {
@@ -217,7 +233,7 @@ const HomePage = () => {
 					</>
 				) : (
 					<Col style={{ gap: 20, width: "100%" }}>
-						<PinkButton>
+						<PinkButton onClick={handleOpenLiveMap}>
 							<IoMapOutline size={20} color="white" />
 							실시간 위치 보기
 						</PinkButton>
