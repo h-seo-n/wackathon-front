@@ -3,6 +3,7 @@ import Wrapper from "@/components/Wrapper";
 import LocationIcon from "/images/Location.svg";
 import LocationAloneIcon from "/images/LocationAlone.svg";
 import LocationTogetherIcon from "/images/LocationTogether.svg";
+import SendIcon from "/images/SendIcon.svg"
 import { Explanation, Title } from "@/components/Text";
 import { GrayButton, PinkButton } from "@/components/Button";
 import { IoPauseSharp, IoPlayOutline } from "react-icons/io5";
@@ -39,7 +40,7 @@ const StartTitle = styled(Title)`
 
 
 const HomePage = () => {
-    const [sessionStatus, setSessionStatus] = useState<"false" | "pending" | "connected">("false");
+    const [sessionStatus, setSessionStatus] = useState<"false" | "pending" | "received" | "connected">("false");
     const partnerName = "상대방"
 
     const [activeTab, setActiveTab] = useState<"location" | "history">("location");
@@ -55,7 +56,7 @@ const HomePage = () => {
     return (
         <PinkContainer style={{ paddingBottom: 100 }}>
             <Header />
-            <MeetingBanner />
+            <MeetingBanner title="우리의 만남" explanation="서로를 찾아가는 여정을 기록해요" />
             <Wrapper style={{ gap: 20 }}>
                 {/* conditionally render img based on connection */}
                 {sessionStatus === "false" ? 
@@ -70,11 +71,17 @@ const HomePage = () => {
                         <StartTitle>위치 공유 중</StartTitle>
                         <Explanation>${partnerName}님의 응답을 기다리고 있어요</Explanation>
                     </>
-                :   
+                : sessionStatus === "connected" ?
                     <>
                         <img src={LocationTogetherIcon} alt="an icon of two pinpoints, signifying shared location" style={{width: 128}}/>
                         <StartTitle>위치 공유 중</StartTitle>
                         <Explanation>실시간으로 ${partnerName}님에게 가는 길을 기록하고 있어요</Explanation>
+                    </>
+                : 
+                    <>
+                        <img src={SendIcon} alt="an icon of an airplane flying" style={{width: 128}}/>
+                        <StartTitle>${partnerName}님의 위치 공유 활성화</StartTitle>
+                        <Explanation>위치 공유를 시작하고 서로의 위치를 확인해보세요!</Explanation>
                     </>
                 }
                 

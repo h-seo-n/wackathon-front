@@ -1,7 +1,7 @@
 import type { ThemeProps } from "@/assets/theme"
 import styled from "styled-components"
 
-export const Title = styled.h3<{ theme: ThemeProps }>`
+export const Title = styled.span<{ theme: ThemeProps }>`
     font-size: ${props => props.theme.fontSizes.large};
     color: ${props => props.theme.colors.black};
     font-weight: ${props => props.theme.fontWeights.medium};

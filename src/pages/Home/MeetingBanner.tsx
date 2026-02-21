@@ -38,7 +38,12 @@ const TextGroup = styled.div`
   gap: 4px;
 `;
 
-const MeetingBanner = () => {
+interface MeetingBannerProp {
+  title: string;
+  explanation: string | null;
+}
+
+const MeetingBanner = ({ title, explanation }: MeetingBannerProp) => {
   return (
     <Container>
       <CirclesWrapper>
@@ -46,8 +51,8 @@ const MeetingBanner = () => {
         <Circle color="#EC4899" />
       </CirclesWrapper>
       <TextGroup>
-        <Title style={{ padding: 0, margin: 0 }}>우리의 만남</Title>
-        <Explanation>서로를 찾아가는 여정을 기록해요</Explanation>
+        <Title style={{ padding: 0, margin: 0 }}>{title}</Title>
+        {explanation && <Explanation>{explanation}</Explanation>}
       </TextGroup>
     </Container>
   );
