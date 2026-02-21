@@ -42,11 +42,6 @@ const TimeText = styled.span`
   color: #9CA3AF;
 `;
 
-const MeetingNumber = styled.span<{ theme: ThemeProps }>`
-  font-size: 13px;
-  font-weight: 500;
-  color: #9CA3AF;
-`;
 
 const StatsRow = styled.div`
   display: flex;
@@ -93,14 +88,13 @@ interface MeetingListProps {
 const MeetingList = ({ meetings }: MeetingListProps) => {
 	return (
 		<ListContainer>
-			{meetings.map((meeting, index) => (
+			{meetings.map((meeting) => (
 				<Card key={`${meeting.date}-${meeting.time}`}>
 					<CardHeader>
 						<DateGroup>
 							<DateText>{meeting.date}</DateText>
 							<TimeText>{meeting.time}</TimeText>
 						</DateGroup>
-						<MeetingNumber>만남 #{index + 1}</MeetingNumber>
 					</CardHeader>
 
 					<StatsRow>

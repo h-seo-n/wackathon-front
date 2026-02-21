@@ -63,13 +63,14 @@ const StoryPage = () => {
             }
         };
         fetchStat();
-    }, []);
+        fetchHistories();
+
+    }, [fetchHistories]);
 
 	useEffect(() => {
 		if (activeTab !== "map") return;
 		void fetchGlobalHistory();
-		void fetchHistories();
-	}, [activeTab, fetchGlobalHistory, fetchHistories]);
+	}, [activeTab, fetchGlobalHistory]);
 
     const now = new Date();
     const month = now.getMonth() + 1;
