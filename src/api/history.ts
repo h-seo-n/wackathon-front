@@ -1,5 +1,5 @@
 import api from "./axios";
-import type { SessionHistoryResponse } from "../utils/types";
+import type { SessionHistoryResponse } from "../utils/types/sessionTypes";
 
 export const getHistoryBySessionId = async (
 	sessionId: number,

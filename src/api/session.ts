@@ -5,7 +5,7 @@ import type {
 	SessionStatusResponse,
 	HistoryResponse,
 	FinishSessionRequest,
-} from "../utils/types";
+} from "@/utils/types/sessionTypes";
 
 export async function getSessionStatus(
 	sessionId: number,
