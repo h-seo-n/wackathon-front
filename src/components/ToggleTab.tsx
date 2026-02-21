@@ -43,24 +43,29 @@ const Tab = styled.button<{ $active: boolean; theme: ThemeProps }>`
 `;
 
 interface ToggleTabProps {
-  activeTab: "location" | "history";
-  onTabChange: (tab: "location" | "history") => void;
+	activeTab: "location" | "history";
+	onTabChange: (tab: "location" | "history") => void;
 }
 
 const ToggleTab = ({ activeTab, onTabChange }: ToggleTabProps) => {
-    return (
-        <FloatingContainer>
-            <Tab $active={activeTab === "location"} onClick={() => onTabChange("location")}>
-                <FaLocationDot size={30} color={theme.colors.primary} />
-                위치 공유
-            </Tab>
-            <Tab $active={activeTab === "history"} onClick={() => onTabChange("history")}>
-                <IoBookOutline size={30} color={theme.colors.primary} />
-                지난 만남
-            </Tab>
-        </FloatingContainer>
-    )
+	return (
+		<FloatingContainer>
+			<Tab
+				$active={activeTab === "location"}
+				onClick={() => onTabChange("location")}
+			>
+				<FaLocationDot size={30} color={theme.colors.primary} />
+				위치 공유
+			</Tab>
+			<Tab
+				$active={activeTab === "history"}
+				onClick={() => onTabChange("history")}
+			>
+				<IoBookOutline size={30} color={theme.colors.primary} />
+				지난 만남
+			</Tab>
+		</FloatingContainer>
+	);
 };
 
 export default ToggleTab;
-    

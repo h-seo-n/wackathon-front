@@ -13,45 +13,48 @@ const SummaryCard = styled.div`
   width: 100%;
 `;
 
-const SummaryRow = styled.div<{theme: ThemeProps}>`
+const SummaryRow = styled.div<{ theme: ThemeProps }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background-color: ${props => props.theme.colors.background};
+  background-color: ${(props) => props.theme.colors.background};
   border-radius: 12px;
 `;
 
-const SummaryValue = styled(InputLabel)<{theme:ThemeProps}>`
-    font-weight: ${props=>props.theme.fontWeights.semiBold};
-    color: ${props=>props.theme.colors.primary};
+const SummaryValue = styled(InputLabel)<{ theme: ThemeProps }>`
+    font-weight: ${(props) => props.theme.fontWeights.semiBold};
+    color: ${(props) => props.theme.colors.primary};
 `;
 
-
 interface MonthSummaryProps {
-  totalTime: number;
-  totalDistance: number;
-  fastestMeeting: number; 
+	totalTime: number;
+	totalDistance: number;
+	fastestMeeting: number;
 }
 
-const MonthSummary = ({ totalTime, totalDistance, fastestMeeting }: MonthSummaryProps) => {
-    return (
-    <SummaryCard>
-        <Title>이번 달 총계</Title>
-        <SummaryRow>
-          <InputLabel>총 만남 시간</InputLabel>
-          <SummaryValue>{totalTime}분</SummaryValue>
-        </SummaryRow>
-        <SummaryRow>
-          <InputLabel>총 이동 거리</InputLabel>
-          <SummaryValue>{totalDistance}m</SummaryValue>
-        </SummaryRow>
-        <SummaryRow>
-          <InputLabel>가장 빠른 만남</InputLabel>
-          <SummaryValue>{fastestMeeting}분</SummaryValue>
-        </SummaryRow>
-    </SummaryCard>
-    )
-}
+const MonthSummary = ({
+	totalTime,
+	totalDistance,
+	fastestMeeting,
+}: MonthSummaryProps) => {
+	return (
+		<SummaryCard>
+			<Title>이번 달 총계</Title>
+			<SummaryRow>
+				<InputLabel>총 만남 시간</InputLabel>
+				<SummaryValue>{totalTime}분</SummaryValue>
+			</SummaryRow>
+			<SummaryRow>
+				<InputLabel>총 이동 거리</InputLabel>
+				<SummaryValue>{totalDistance}m</SummaryValue>
+			</SummaryRow>
+			<SummaryRow>
+				<InputLabel>가장 빠른 만남</InputLabel>
+				<SummaryValue>{fastestMeeting}분</SummaryValue>
+			</SummaryRow>
+		</SummaryCard>
+	);
+};
 
 export default MonthSummary;
