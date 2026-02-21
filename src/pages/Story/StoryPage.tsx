@@ -6,7 +6,6 @@ import MeetingBanner from "../Home/MeetingBanner";
 import type { DashboardProps } from "./Dashboard";
 import Dashboard from "./Dashboard";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import type { MeetingRecord } from "./MeetingList";
 import MeetingList from "./MeetingList";
 import ToggleTab from "@/components/ToggleTab";
@@ -31,7 +30,6 @@ const GrayContent = styled.div<{ theme: ThemeProps }>`
 
 const StoryPage = () => {
 	const [activeTab, setActiveTab] = useState<"story" | "map" | "list">("story");
-	const navigate = useNavigate();
 
 	// current month 가져오기, 만남 횟수 가져오기
 	const title = "11월, 우리는 3번 만났어요";
@@ -70,16 +68,7 @@ const StoryPage = () => {
 					<MeetingList meetings={meetings} />
 				)}
 			</GrayContent>
-			<ToggleTab
-				activeTab="history"
-				onTabChange={(tab) => {
-					if (tab === "location") {
-						navigate("/home");
-						return;
-					}
-					navigate("/story");
-				}}
-			/>
+			<ToggleTab />
 		</WhiteContainer>
 	);
 };

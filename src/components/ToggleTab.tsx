@@ -3,6 +3,7 @@ import type { ThemeProps } from "@/assets/theme";
 import { FaLocationDot } from "react-icons/fa6";
 import { IoBookOutline } from "react-icons/io5";
 import theme from "@/assets/theme";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const FloatingContainer = styled.div`
   position: fixed;
@@ -42,24 +43,31 @@ const Tab = styled.button<{ $active: boolean; theme: ThemeProps }>`
   }
 `;
 
-interface ToggleTabProps {
-	activeTab: "location" | "history";
-	onTabChange: (tab: "location" | "history") => void;
-}
 
-const ToggleTab = ({ activeTab, onTabChange }: ToggleTabProps) => {
+
+const ToggleTab = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const activeTab = location.pathname === "/story" ? "history" : "location";
+
+  const handleToggleTab = (tab: "location" | "history") => {
+    if (tab === activeTab) return;
+    navigate(tab === "location" ? "/home" : "/story");
+  };
+
 	return (
 		<FloatingContainer>
 			<Tab
 				$active={activeTab === "location"}
-				onClick={() => onTabChange("location")}
+				onClick={() => handleToggleTab('location')}
 			>
 				<FaLocationDot size={30} color={theme.colors.primary} />
 				위치 공유
 			</Tab>
 			<Tab
 				$active={activeTab === "history"}
-				onClick={() => onTabChange("history")}
+				onClick={() => handleToggleTab('history')}
 			>
 				<IoBookOutline size={30} color={theme.colors.primary} />
 				지난 만남

@@ -8,66 +8,13 @@ import { Explanation, Title } from "@/components/Text";
 import { GrayButton, PinkButton } from "@/components/Button";
 import { IoPauseSharp, IoPlayOutline } from "react-icons/io5";
 import { IoMapOutline } from "react-icons/io5";
-import { Col, Row } from "@/components/FlexBox";
+import { Col } from "@/components/FlexBox";
 import { useState } from "react";
-import Avatar from "/images/Avatar.svg";
-import { GoBellFill } from "react-icons/go";
 import theme from "@/assets/theme";
 import ToggleTab from "@/components/ToggleTab";
 import MeetingBanner from "./MeetingBanner";
 import styled from "styled-components";
 
-const Header = () => {
-	return (
-		<Row
-			style={{
-				justifyContent: "flex-end",
-				alignItems: "center",
-				gap: 10,
-				width: "100%",
-				maxWidth: 400,
-				padding: "5px 0",
-			}}
-		>
-			<button
-				type="button"
-				style={{
-					background: "none",
-					border: "none",
-					padding: 0,
-					cursor: "pointer",
-					display: "flex",
-					alignItems: "center",
-				}}
-			>
-				{/* should put user image */}
-				<img
-					src={Avatar}
-					alt="user profile"
-					style={{
-						width: 36,
-						height: 36,
-						borderRadius: "50%",
-						objectFit: "cover",
-					}}
-				/>
-			</button>
-			<button
-				type="button"
-				style={{
-					background: "none",
-					border: "none",
-					padding: 0,
-					cursor: "pointer",
-					display: "flex",
-					alignItems: "center",
-				}}
-			>
-				<GoBellFill color={theme.colors.primary} size={28} />
-			</button>
-		</Row>
-	);
-};
 
 const StartTitle = styled(Title)`
     margin: 0;
@@ -79,10 +26,6 @@ const HomePage = () => {
 	>("false");
 	const partnerName = "상대방";
 
-	const [activeTab, setActiveTab] = useState<"location" | "history">(
-		"location",
-	);
-
 	const handleShareStart = () => {
 		setSessionStatus("connected");
 		// api call
@@ -93,7 +36,6 @@ const HomePage = () => {
 
 	return (
 		<PinkContainer style={{ paddingBottom: 100 }}>
-			<Header />
 			<MeetingBanner
 				title="우리의 만남"
 				explanation="서로를 찾아가는 여정을 기록해요"
@@ -166,7 +108,7 @@ const HomePage = () => {
 					</Col>
 				)}
 			</Wrapper>
-			<ToggleTab activeTab={activeTab} onTabChange={setActiveTab} />
+			<ToggleTab />
 		</PinkContainer>
 	);
 };
