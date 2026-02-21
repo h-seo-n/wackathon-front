@@ -23,6 +23,11 @@ interface HistoryDto {
 	distance: number;
 }
 
+export interface HistoryResponse {
+	sessionId: number;
+	points: SessionPoint[];
+}
+
 export interface HistoryListResponse {
 	historyList: HistoryDto[];
 }
