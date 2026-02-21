@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CORS Check</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 24px;
+        line-height: 1.5;
+      }
+      button {
+        padding: 8px 14px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      pre {
+        margin-top: 12px;
+        background: #f5f5f5;
+        padding: 12px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CORS 최소 테스트</h1>
+    <button id="check-btn" type="button">/api/health 요청</button>
+    <pre id="result">대기 중</pre>
+
+    <script>
+      const SERVER_API_BASE = "https://waffle-project-dev-server.xyz";
+      const HEALTH_PATH = "/api/health";
+      const HEALTH_URL = `${SERVER_API_BASE}${HEALTH_PATH}`;
+
+      const button = document.getElementById("check-btn");
+      const result = document.getElementById("result");
+
+      button.addEventListener("click", async () => {
+        result.textContent = "요청 중...";
+
+        try {
+          const response = await fetch(HEALTH_URL, {
+            method: "GET",
+          });
+
+          const body = await response.text();
+          result.textContent = `SUCCESS\nstatus: ${response.status}\nbody: ${body}`;
+        } catch (error) {
+          result.textContent = `FAILED\n${error}`;
+        }
+      });
+    </script>
+  </body>
+</html>

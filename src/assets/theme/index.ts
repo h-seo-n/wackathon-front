@@ -29,7 +29,7 @@ const theme = {
         background: "#FFF6FB",
         gray: "#F4F4F5",
         black: "#0A0A0A",
-        darkgray: "#52525C",
+        darkgray: "#52525c",
     },
     fonts: ["Inter", "sans-serif", "Roboto"],
     fontSizes: {
