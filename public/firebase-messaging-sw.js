@@ -24,4 +24,23 @@ messaging.onBackgroundMessage((payload) => {
 
 self.addEventListener('push', function(event) {
   console.log("🔥 PUSH RECEIVED", event);
+
+  const getPayload = () => {
+    if (!event.data) return null;
+
+    try {
+      return event.data.json();
+    } catch {
+      return { notification: { body: event.data.text() } };
+    }
+  };
+
+  const payload = getPayload();
+  const title = payload?.notification?.title || "알림";
+  const options = {
+    body: payload?.notification?.body || "",
+    data: payload?.data || {},
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
 });

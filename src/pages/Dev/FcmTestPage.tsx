@@ -2,8 +2,8 @@ import { useState } from "react";
 import { enablePush } from "@/firebase/push";
 
 // const LOCAL_HOST_URL = "http://localhost:8080/api/noti/token"
-const NOTI_TOKEN_API_URL = "https://waffle-project-dev-server.xyz/api/noti/token";
-const NOTI_PARTNER_API_URL = "https://waffle-project-dev-server.xyz/api/noti/partner";
+const NOTI_TOKEN_API_URL = "http://localhost:8080/api/noti/token";
+const NOTI_PARTNER_API_URL = "http://localhost:8080/api/noti/partner";
 
 
 
