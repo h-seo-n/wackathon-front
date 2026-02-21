@@ -24,6 +24,7 @@ import type {
 } from "@/utils/types/sessionTypes";
 import api from "../api/axios";
 import { openSessionWs, type WsPayload } from "../ws/sessionWs";
+import { useAuth } from "../contexts/AuthContext";
 
 const SessionContext = createContext<SessionState | null>(null);
 
@@ -43,6 +44,9 @@ export function SessionProvider({
 	sessionId: initialSessionId,
 	children,
 }: Props) {
+	const { user } = useAuth();
+	const myUserId = user?.id ?? null;
+
 	const [sessionId, setSessionId] = useState<number>(initialSessionId);
 
 	const [status, setStatus] = useState<SessionStatus | null>(null);
@@ -173,10 +177,24 @@ export function SessionProvider({
 					if (!msg || typeof msg !== "object") return;
 
 					switch (msg.type) {
-						case "POINT":
-							setPartnerPos({ lat: msg.lat, lng: msg.lng });
-							void reloadHistory();
+						case "POINT": {
+							// 서버가 브로드캐스트로 userId를 붙여준다고 가정 
+							const senderId =
+								typeof msg.userId === "number" ? (msg.userId as number) : null;
+
+							// 내 에코(내가 보낸 POINT를 내가 다시 받은 것)면 무시
+							if (myUserId != null && senderId === myUserId) {
+								return;
+							}
+
+							// 상대 위치만 partnerPos로 반영
+							if (msg.lat != null && msg.lng != null) {
+								setPartnerPos({ lat: msg.lat, lng: msg.lng });
+							}
+							
+							if (msg.text || msg.photoPath) void reloadHistory();
 							break;
+						}
 						case "MEET_CONFIRM":
 							void reloadStatus();
 							void reloadHistory();
