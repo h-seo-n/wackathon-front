@@ -1,7 +1,8 @@
 // SessionMapPage.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SessionProvider, useSession } from "../context/SessionProvider";
-import type { LatLng } from "../utils/types";
+import type { LatLng } from "../utils/types/sessionTypes";
+import { useAuth } from "../contexts/AuthContext";
 
 declare global {
 	interface Window {
@@ -74,6 +75,8 @@ function distanceMeters(
 
 function SessionMapInner() {
 	const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_KEY as string;
+	const { user } = useAuth();
+	const myUserId = user?.id ?? null;
 
 	const {
 		sessionId,
@@ -92,6 +95,7 @@ function SessionMapInner() {
 	const partnerMarkerRef = useRef<any>(null);
 	const myPolylineRef = useRef<any>(null);
 	const partnerPolylineRef = useRef<any>(null);
+	const hydratedRef = useRef(false);
 
 	const [myTrail, setMyTrail] = useState<LatLng[]>([]);
 	const [partnerTrail, setPartnerTrail] = useState<LatLng[]>([]);
@@ -298,16 +302,29 @@ function SessionMapInner() {
 		return `거리 ${Math.round(m)}m`;
 	}, [myPos, partnerPos]);
 
-	// ✅ 히스토리 기반으로 trail을 복원하고 싶다면(새로고침 시 경로 이어붙이기):
-	// - 현재는 실시간 위치로만 trail을 만들고 있음.
-	// - 아래 주석을 풀면 "POINT" 타입만 골라서 초기 trail 세팅 가능.
-	// useEffect(() => {
-	// 	if (!ready) return;
-	// 	const myPoints = history
-	// 		.filter((p) => p.type === "POINT" && p.lat != null && p.lng != null)
-	// 		.map((p) => ({ lat: p.lat as number, lng: p.lng as number }));
-	// 	setMyTrail(myPoints.slice(-200));
-	// }, [history, ready]);
+	useEffect(() => {
+		if (!ready) return;
+		if (!history || history.length === 0) return;
+		if (!myUserId) return;              // 내 userId 없으면 분리 불가
+		if (hydratedRef.current) return;    // ✅ 새로고침/초기 진입 때 한 번만 복원
+
+		const points = [...history]
+			.filter((p) => p.lat != null && p.lng != null)
+			.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+		const myPoints = points
+			.filter((p) => p.userId === myUserId && p.type === "POINT")
+			.map((p) => ({ lat: p.lat as number, lng: p.lng as number }));
+
+		const partnerPoints = points
+			.filter((p) => p.userId !== myUserId && p.type === "POINT")
+			.map((p) => ({ lat: p.lat as number, lng: p.lng as number }));
+
+		setMyTrail(myPoints.slice(-200));
+		setPartnerTrail(partnerPoints.slice(-200));
+
+		hydratedRef.current = true;
+	}, [ready, history, myUserId]);
 
 	return (
 		<div style={styles.page}>
