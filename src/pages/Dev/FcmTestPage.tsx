@@ -3,6 +3,7 @@ import { enablePush } from "@/firebase/push";
 
 // const LOCAL_HOST_URL = "http://localhost:8080/api/noti/token"
 const NOTI_TOKEN_API_URL = "https://waffle-project-dev-server.xyz/api/noti/token";
+const NOTI_PARTNER_API_URL = "https://waffle-project-dev-server.xyz/api/noti/partner";
 
 
 
@@ -64,6 +65,34 @@ const FcmTestPage = () => {
 		}
 	};
 
+	const handleSendPartnerNoti = async () => {
+		if (!accessToken.trim()) {
+			setStatus("액세스 토큰을 입력해 주세요.");
+			return;
+		}
+
+		setStatus("파트너 알림 요청 중...");
+
+		try {
+			const response = await fetch(NOTI_PARTNER_API_URL, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${accessToken.trim()}`,
+				},
+			});
+
+			const bodyText = await response.text();
+			if (!response.ok) {
+				setStatus(`파트너 알림 실패 (${response.status}): ${bodyText}`);
+				return;
+			}
+
+			setStatus(`파트너 알림 성공 (${response.status})`);
+		} catch (error) {
+			setStatus(`파트너 알림 실패: ${String(error)}`);
+		}
+	};
+
 	return (
 		<div style={{ padding: 24 }}>
 			<h1>FCM Test</h1>
@@ -80,6 +109,9 @@ const FcmTestPage = () => {
 				/>
 				<button type="button" onClick={handleSendTokenToBackend}>
 					토큰 서버 전송
+				</button>
+				<button type="button" onClick={handleSendPartnerNoti} style={{ marginLeft: 8 }}>
+					파트너 알림 전송
 				</button>
 			</div>
 			<p>FCM Token: {fcmToken ? `${fcmToken.slice(0, 20)}...` : "없음"}</p>
