@@ -13,6 +13,7 @@
 		"axios": "^1.13.5",
 		"react": "^19.2.0",
 		"react-dom": "^19.2.0",
+		"react-kakao-maps-sdk": "^1.2.1",
 		"react-router-dom": "^7.13.0",
 		"zustand": "^5.0.11"
 	},
