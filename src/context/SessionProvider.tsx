@@ -14,7 +14,7 @@ import {
 	getSessionStatus,
 	uploadSessionPhoto,
 	createSession,
-	// getSessions, // 필요하면 사용
+	acceptSession,
 } from "../api/session";
 import type {
 	SessionPoint,
@@ -22,9 +22,10 @@ import type {
 	LatLng,
 	SessionState,
 	FinishSessionRequest,
-} from "../utils/types";
+} from "@/utils/types/sessionTypes";
 import api from "../api/axios";
 import { TokenService } from "../api/tokenService";
+import { openSessionWs, type WsPayload } from "../ws/sessionWs";
 
 const SessionContext = createContext<SessionState | null>(null);
 
@@ -39,13 +40,13 @@ export function useSession() {
  */
 type WsOutMessage =
 	| {
-			type: "POINT";
-			lat: number;
-			lng: number;
-			ts: number;
-			text?: string;
-			photoPath?: string;
-	  }
+		type: "POINT";
+		lat: number;
+		lng: number;
+		ts: number;
+		text?: string;
+		photoPath?: string;
+	}
 	| { type: "MEET_CONFIRM"; lat: number; lng: number; ts: number }
 	| { type: "CANCEL"; ts: number };
 
@@ -56,21 +57,21 @@ type WsOutMessage =
  */
 type WsInMessage =
 	| {
-			type: "POINT";
-			lat: number;
-			lng: number;
-			ts?: number;
-			text?: string;
-			photoPath?: string;
-			userId?: number;
-	  }
+		type: "POINT";
+		lat: number;
+		lng: number;
+		ts?: number;
+		text?: string;
+		photoPath?: string;
+		userId?: number;
+	}
 	| {
-			type: "MEET_CONFIRM";
-			lat: number;
-			lng: number;
-			ts?: number;
-			userId?: number;
-	  }
+		type: "MEET_CONFIRM";
+		lat: number;
+		lng: number;
+		ts?: number;
+		userId?: number;
+	}
 	| { type: "CANCEL"; ts?: number; userId?: number }
 	| { type: "ERROR"; message: string };
 
@@ -102,7 +103,7 @@ export function SessionProvider({
 	const [history, setHistory] = useState<SessionPoint[]>([]);
 	const [isWsConnected, setIsWsConnected] = useState(false);
 
-	const wsRef = useRef<WebSocket | null>(null);
+	const wsRef = useRef<ReturnType<typeof openSessionWs> | null>(null);
 
 	// 위치 추적은 watchPosition으로 "최신 좌표"만 갱신하고
 	// WS 전송은 setInterval로 3초마다 전송한다.
@@ -135,7 +136,7 @@ export function SessionProvider({
 	// ---------------------------
 
 	const buildWsUrl = useCallback((sid: number) => {
-		const token = TokenService.getToken?.() ?? TokenService.getToken?.() ?? "";
+		const token = localStorage.getItem("accessToken");
 		if (!token) {
 			// 토큰 없으면 연결해도 인증 실패 가능성이 큼
 			// (원하면 throw 처리)
@@ -147,18 +148,17 @@ export function SessionProvider({
 		// 스펙: wss://<domain>/ws/session?sessionId=123&token=<JWT>
 		const url = `${base}/ws/session?sessionId=${encodeURIComponent(
 			String(sid),
-		)}&token=${encodeURIComponent(token)}`;
+		)}&token=${encodeURIComponent(token || "")}`;
 		return url;
 	}, []);
 
 	// ---------------------------
 	// WS send / connect / disconnect
 	// ---------------------------
+	type WsOutMessage = WsPayload;
 
 	const sendWs = useCallback((msg: WsOutMessage) => {
-		const ws = wsRef.current;
-		if (!ws || ws.readyState !== WebSocket.OPEN) return;
-		ws.send(JSON.stringify(msg));
+		wsRef.current?.send(msg);
 	}, []);
 
 	const clearSendInterval = useCallback(() => {
@@ -211,90 +211,63 @@ export function SessionProvider({
 		clearSendInterval();
 		stopWatchPosition();
 
-		const ws = wsRef.current;
-		if (
-			ws &&
-			(ws.readyState === WebSocket.OPEN ||
-				ws.readyState === WebSocket.CONNECTING)
-		) {
-			ws.close();
-		}
+		wsRef.current?.close();
 		wsRef.current = null;
 		setIsWsConnected(false);
 	}, [clearSendInterval, stopWatchPosition]);
 
-	const connectWs = useCallback(
-		(sid: number) => {
-			// 기존 연결 정리
-			disconnectWs();
+	const connectWs = useCallback((sid: number) => {
+		disconnectWs();
 
-			const url = buildWsUrl(sid);
-			const ws = new WebSocket(url);
-			wsRef.current = ws;
+		const token = TokenService.getToken();
+		if (!token) console.warn("[WS] token missing (TokenService)");
 
-			ws.onopen = () => {
+		wsRef.current = openSessionWs(sid, token ?? "", {
+			onOpen: () => {
 				setIsWsConnected(true);
-				// (4) 위치 감시 시작 + (4) 3초 주기 전송 시작
 				startWatchPosition();
 				startSendInterval();
-			};
-
-			ws.onclose = () => {
-				setIsWsConnected(false);
-				// (6) 종료 시 정리
-				clearSendInterval();
-				stopWatchPosition();
-			};
-
-			ws.onerror = () => {
+			},
+			onClose: () => {
 				setIsWsConnected(false);
 				clearSendInterval();
 				stopWatchPosition();
-			};
-
-			ws.onmessage = (event) => {
-				let msg: WsInMessage | null = null;
-				try {
-					msg = JSON.parse(event.data);
-				} catch {
-					return;
-				}
-				if (!msg) return;
+			},
+			onError: () => {
+				setIsWsConnected(false);
+				clearSendInterval();
+				stopWatchPosition();
+			},
+			onMessage: (msg: any) => {
+				if (!msg || typeof msg !== "object") return;
 
 				switch (msg.type) {
 					case "POINT":
-						// 파트너의 최신 위치로 추정(서버가 userId 구분 준다면 더 정확히 처리 가능)
 						setPartnerPos({ lat: msg.lat, lng: msg.lng });
-						// 히스토리에 누적되는 구조면 서버 저장 후 브로드캐스트 될 것이므로 갱신
 						void reloadHistory();
 						break;
-
 					case "MEET_CONFIRM":
 						void reloadStatus();
 						void reloadHistory();
 						break;
-
 					case "CANCEL":
 						void reloadStatus();
 						break;
-
 					case "ERROR":
 						console.error("[WS ERROR]", msg.message);
 						break;
 				}
-			};
-		},
-		[
-			buildWsUrl,
-			clearSendInterval,
-			disconnectWs,
-			reloadHistory,
-			reloadStatus,
-			startSendInterval,
-			startWatchPosition,
-			stopWatchPosition,
-		],
-	);
+			},
+		});
+	}, [
+		disconnectWs,
+		clearSendInterval,
+		stopWatchPosition,
+		startWatchPosition,
+		startSendInterval,
+		reloadHistory,
+		reloadStatus,
+	]);
 
 	// ---------------------------
 	// Actions (요구사항 5,7,2,3)
@@ -433,13 +406,16 @@ export function SessionProvider({
 	// - 여기서는 "props로 sessionId 들어왔고, status가 ACTIVE면 붙는다" 같은 로직을 원하면 추가 가능
 	// ---------------------------
 	useEffect(() => {
-		// 초기 진입 시 자동 연결을 원하면 아래 주석 해제:
-		// connectWs(sessionId);
+		if (!status) return;
 
-		return () => {
-			disconnectWs();
-		};
-	}, [disconnectWs]);
+		// DONE이면 붙어있던 WS도 끊어주는 게 안전
+		if (status === "DONE") {
+			if (isWsConnected) disconnectWs();
+			return;
+		}
+
+		connectWs(sessionId);
+	}, [status, sessionId, connectWs, disconnectWs, isWsConnected]);
 
 	// ---------------------------
 	// SessionState 제공 (기존 인터페이스에 맞춰 유지)

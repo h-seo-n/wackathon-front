@@ -1,7 +1,7 @@
 // SessionMapPage.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SessionProvider, useSession } from "../context/SessionProvider";
-import type { LatLng, SessionPoint } from "../utils/types";
+import type { LatLng } from "../utils/types";
 
 declare global {
 	interface Window {
@@ -83,22 +83,9 @@ function SessionMapInner() {
 		isWsConnected,
 		sendMeetAndFinish,
 		reloadHistory,
-		// ✅ Provider가 제공해야 함 (아래 참고)
+		history,
 		uploadPhotoAndBroadcast,
-	} = useSession() as any as {
-		sessionId: number | null;
-		status: string | null;
-		myPos: LatLng | null;
-		partnerPos: LatLng | null;
-		isWsConnected: boolean;
-		sendMeetAndFinish: (pos: LatLng) => Promise<void>;
-		reloadHistory: () => Promise<void>;
-		history: SessionPoint[];
-		uploadPhotoAndBroadcast: (
-			file: File,
-			text?: string,
-		) => Promise<SessionPoint>;
-	};
+	} = useSession();
 
 	const mapRef = useRef<any>(null);
 	const myMarkerRef = useRef<any>(null);
@@ -119,11 +106,6 @@ function SessionMapInner() {
 	// 경과 시간 (일단 페이지 진입 시점 기준)
 	const startAtRef = useRef<number>(Date.now());
 	const [elapsed, setElapsed] = useState("0:00");
-
-	// ✅ 새로고침 시 history 다시 받아오기 (요구사항 1)
-	useEffect(() => {
-		void reloadHistory();
-	}, [reloadHistory]);
 
 	useEffect(() => {
 		const t = window.setInterval(() => {
