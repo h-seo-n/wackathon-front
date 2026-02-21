@@ -20,6 +20,8 @@ jobs:
           node-version: "24.12.0"
 
       - name: Build & Export
+        env:
+            VITE_KAKAO_MAP_KEY: ${{ secrets.VITE_KAKAO_MAP_KEY }}
         run: |
           yarn install
           yarn build
