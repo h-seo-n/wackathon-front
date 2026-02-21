@@ -42,7 +42,7 @@ const PartnerPage = () => {
 			await joinInviteCode(inviteCode.trim());
 			setToast("초대 수락 완료");
 			setInviteCode("");
-		} catch (err) {
+		} catch {
 			setToast("초대 수락에 실패했습니다");
 		} finally {
 			setIsAccepting(false);

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { SessionProvider, useSession } from "../context/SessionProvider";
 import type { LatLng } from "../utils/types/sessionTypes";
 import { useAuth } from "../contexts/AuthContext";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams, useNavigate } from "react-router-dom";
 
 declare global {
 	interface Window {
@@ -80,6 +80,7 @@ function SessionMapInner() {
 	const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_KEY as string;
 	const { user } = useAuth();
 	const myUserId = user?.id ?? null;
+	const navigate = useNavigate();
 
 	const {
 		sessionId,
@@ -360,6 +361,7 @@ function SessionMapInner() {
 
 		setShareMy(false);
 		setSharePartner(false);
+		navigate("/story", { replace: true });
 	};
 
 	// 사진 업로드

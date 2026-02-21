@@ -8,71 +8,18 @@ import { Explanation, Title } from "@/components/Text";
 import { GrayButton, PinkButton } from "@/components/Button";
 import { IoPauseSharp, IoPlayOutline } from "react-icons/io5";
 import { IoMapOutline } from "react-icons/io5";
-import { Col, Row } from "@/components/FlexBox";
+import { Col } from "@/components/FlexBox";
 import { useState, useRef, useCallback, useEffect } from "react";
-import Avatar from "/images/Avatar.svg";
-import { GoBellFill } from "react-icons/go";
 import theme from "@/assets/theme";
 import ToggleTab from "@/components/ToggleTab";
 import MeetingBanner from "./MeetingBanner";
 import styled from "styled-components";
 import Toast from "@/components/Toast";
 import { notifyPartnerLocationShare } from "@/api/noti";
-import { createSession, getActiveSession } from "@/api/session";
+import { createSession, getActiveSession, acceptSession, getSessionStatus } from "@/api/session";
 import { openSessionWs } from "@/ws/sessionWs";
 import { useNavigate } from "react-router-dom";
 
-const Header = () => {
-	return (
-		<Row
-			style={{
-				justifyContent: "flex-end",
-				alignItems: "center",
-				gap: 10,
-				width: "100%",
-				maxWidth: 400,
-				padding: "5px 0",
-			}}
-		>
-			<button
-				type="button"
-				style={{
-					background: "none",
-					border: "none",
-					padding: 0,
-					cursor: "pointer",
-					display: "flex",
-					alignItems: "center",
-				}}
-			>
-				{/* should put user image */}
-				<img
-					src={Avatar}
-					alt="user profile"
-					style={{
-						width: 36,
-						height: 36,
-						borderRadius: "50%",
-						objectFit: "cover",
-					}}
-				/>
-			</button>
-			<button
-				type="button"
-				style={{
-					background: "none",
-					border: "none",
-					padding: 0,
-					cursor: "pointer",
-					display: "flex",
-					alignItems: "center",
-				}}
-			>
-				<GoBellFill color={theme.colors.primary} size={28} />
-			</button>
-		</Row>
-	);
-};
 
 const StartTitle = styled(Title)`
     margin: 0;
@@ -88,10 +35,6 @@ const HomePage = () => {
 	const [isWsConnected, setIsWsConnected] = useState(false);
 	const wsHandleRef = useRef<ReturnType<typeof openSessionWs> | null>(null);
 	const partnerName = "상대방";
-
-	const [activeTab, setActiveTab] = useState<"location" | "history">(
-		"location",
-	);
 
 	const cleanupWs = useCallback(() => {
 		console.log("[home] WS cleanup");
@@ -151,9 +94,17 @@ const HomePage = () => {
 		try {
 			const active = await getActiveSession();
 			if (active?.sessionId) {
+				const sid = active.sessionId;
 				setToast("파트너가 세션을 열었습니다. 연결합니다.");
-				setSessionId(active.sessionId);
+				setSessionId(sid);
 				setSessionStatus("received");
+				
+				const st = await getSessionStatus(sid);
+				if (st.status === "PENDING") {
+					await acceptSession(sid);
+					console.log("[home] accepted:", sid);
+				}
+				
 				openWsConnection(active.sessionId);
 			} else {
 				setToast("파트너가 위치 공유를 열지 않았습니다.");
@@ -199,7 +150,6 @@ const HomePage = () => {
 
 	return (
 		<PinkContainer style={{ paddingBottom: 100 }}>
-			<Header />
 			<MeetingBanner
 				title="우리의 만남"
 				explanation="서로를 찾아가는 여정을 기록해요"
@@ -294,7 +244,7 @@ const HomePage = () => {
 					</Col>
 				)}
 			</Wrapper>
-			<ToggleTab activeTab={activeTab} onTabChange={setActiveTab} />
+			<ToggleTab />
 			{toast && <Toast message={toast} onClose={() => setToast(null)} />}
 		</PinkContainer>
 	);
