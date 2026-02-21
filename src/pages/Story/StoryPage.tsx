@@ -5,11 +5,13 @@ import NavigationBar from "./NavigationBar";
 import MeetingBanner from "../Home/MeetingBanner";
 import type { DashboardProps } from "./Dashboard";
 import Dashboard from "./Dashboard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { MeetingRecord } from "./MeetingList";
 import MeetingList from "./MeetingList";
 import ToggleTab from "@/components/ToggleTab";
+import MapHistory from "./MapHistory";
+import { useHistory } from "@/context/HistoryProvider";
 
 const WhiteContainer = styled(PinkContainer)`
     background-color: #ffffff;
@@ -33,6 +35,22 @@ const StoryPage = () => {
 	const [activeTab, setActiveTab] = useState<"story" | "map" | "list">("story");
 	const navigate = useNavigate();
 
+	const {
+		history,
+		fetchHistoryBySessionId,
+		isLoadingHistory,
+		error,
+	} = useHistory();
+
+	// TODO: 실제로는 "선택된 만남(sessionId)"로 바꿔줘야 함
+	const sessionIdForMap = 1;
+
+	// ✅ map 탭 진입 시 히스토리 로드
+	useEffect(() => {
+		if (activeTab !== "map") return;
+		void fetchHistoryBySessionId(sessionIdForMap);
+	}, [activeTab, fetchHistoryBySessionId]);
+
 	// current month 가져오기, 만남 횟수 가져오기
 	const title = "11월, 우리는 3번 만났어요";
 	// 데이터 다 가져오기
@@ -51,6 +69,8 @@ const StoryPage = () => {
 		{ date: "2월 8일 (일)", time: "오전 12:00", duration: 41, distance: 3200 },
 	];
 
+	
+
 	return (
 		<WhiteContainer>
 			<NavigationBar
@@ -65,8 +85,20 @@ const StoryPage = () => {
 				{activeTab === "story" ? (
 					<Dashboard {...dashboardData} />
 				) : activeTab === "map" ? (
-					<div />
-				) : (
+					<>
+						{isLoadingHistory && (
+							<div style={{ width: "100%", fontSize: 13, color: "#666" }}>
+								히스토리 불러오는 중...
+							</div>
+						)}
+						{error && (
+							<div style={{ width: "100%", fontSize: 13, color: "crimson" }}>
+								{error}
+							</div>
+						)}
+						{/* ✅ MapHistory에 history를 props로 전달 */}
+						<MapHistory history={history} />
+					</>				) : (
 					<MeetingList meetings={meetings} />
 				)}
 			</GrayContent>

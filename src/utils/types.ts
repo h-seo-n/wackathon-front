@@ -47,8 +47,8 @@ export type PointHistoryDto =
 	| PointHistory;
 
 export interface SessionHistoryResponse {
-	user1: PointHistoryDto;
-	user2: PointHistoryDto;
+	user1: PointHistoryDto[];
+	user2: PointHistoryDto[];
 }
 
 export interface HistoryResponse {
