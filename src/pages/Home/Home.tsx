@@ -121,8 +121,8 @@ const HomePage = () => {
 				},
 			});
 			wsHandleRef.current = handler;
-	},
-	[cleanupWs],
+		},
+		[cleanupWs],
 	);
 
 	const startSessionFlow = useCallback(async () => {
@@ -172,7 +172,6 @@ const HomePage = () => {
 		console.log("[home] 위치 공유 중지");
 		cleanupWs();
 		setSessionStatus("false");
-		setSessionId(null);
 	};
 
 	useEffect(() => {
