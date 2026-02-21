@@ -118,7 +118,6 @@ const HomePage = () => {
 				onClose: () => {
 					console.log("[home] WS closed sessionId", sessionId);
 					setIsWsConnected(false);
-					setSessionStatus("false");
 				},
 				onError: () => {
 					console.error("[home] WS error sessionId", sessionId);
