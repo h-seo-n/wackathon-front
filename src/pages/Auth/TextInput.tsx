@@ -6,6 +6,6 @@ const TextInput = styled.input<{ theme: ThemeProps }>`
     padding: 10px 20px;
     font-size: ${(props) => props.theme.fontSizes.small};
     border-radius: 10px;
-`
+`;
 
 export default TextInput;

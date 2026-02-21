@@ -1,7 +1,11 @@
 import { useState } from "react";
 import styled from "styled-components";
 import type { ThemeProps } from "@/assets/theme";
-import { IoCalendarClearOutline, IoChevronBack, IoLocationOutline } from "react-icons/io5";
+import {
+	IoCalendarClearOutline,
+	IoChevronBack,
+	IoLocationOutline,
+} from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { Title } from "@/components/Text";
 import { GiFountainPen } from "react-icons/gi";
@@ -38,7 +42,7 @@ const TitleText = styled(Title)`
   left: 50%;
   transform: translateX(-50%);
 
-`
+`;
 const TabRow = styled.div`
   display: flex;
   gap: 8px;
@@ -59,69 +63,69 @@ const Tab = styled.button<{ $active: boolean; theme: ThemeProps }>`
   font-weight: 600;
   transition: all 0.2s ease;
   width: 100%;
-  background-color: ${(props) => (props.$active ? props.theme.colors.primary : props.theme.colors.gray )};
-  color: ${(props) => (props.$active ? "#ffffff" : props.theme.colors.darkgray )};
+  background-color: ${(props) => (props.$active ? props.theme.colors.primary : props.theme.colors.gray)};
+  color: ${(props) => (props.$active ? "#ffffff" : props.theme.colors.darkgray)};
 `;
 
 type TabType = "story" | "map" | "list";
 
 interface NavigationBarProps {
-  title?: string;
-  activeTab?: TabType;
-  onTabChange?: (tab: TabType) => void;
-  onBack?: () => void;
+	title?: string;
+	activeTab?: TabType;
+	onTabChange?: (tab: TabType) => void;
+	onBack?: () => void;
 }
 
 const NavigationBar = ({
-  title = "만남 회고",
-  activeTab: controlledTab,
-  onTabChange,
-  onBack,
+	title = "만남 회고",
+	activeTab: controlledTab,
+	onTabChange,
+	onBack,
 }: NavigationBarProps) => {
-  const navigate = useNavigate();
-  const [internalTab, setInternalTab] = useState<TabType>("story");
-  const activeTab = controlledTab ?? internalTab;
+	const navigate = useNavigate();
+	const [internalTab, setInternalTab] = useState<TabType>("story");
+	const activeTab = controlledTab ?? internalTab;
 
-  const handleTabChange = (tab: TabType) => {
-    setInternalTab(tab);
-    onTabChange?.(tab);
-  };
-  
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      navigate(-1);
-    }
-  };
+	const handleTabChange = (tab: TabType) => {
+		setInternalTab(tab);
+		onTabChange?.(tab);
+	};
 
-  const tabs: { key: TabType; label: string; icon: React.ReactNode }[] = [
-    { key: "story", label: "스토리", icon: <GiFountainPen /> },
-    { key: "map", label: "지도", icon: <IoLocationOutline /> },
-    { key: "list", label: "목록", icon:  <IoCalendarClearOutline />},
-  ];
+	const handleBack = () => {
+		if (onBack) {
+			onBack();
+		} else {
+			navigate(-1);
+		}
+	};
 
-  return (
-    <NavContainer>
-      <TopRow>
-        <BackButton onClick={handleBack}>
-          <IoChevronBack size={24} />
-        </BackButton>
-        <TitleText>{title}</TitleText>
-      </TopRow>
-      <TabRow>
-        {tabs.map((tab) => (
-          <Tab
-            key={tab.key}
-            $active={activeTab === tab.key}
-            onClick={() => handleTabChange(tab.key)}
-          >
-            {tab.icon} {tab.label}
-          </Tab>
-        ))}
-      </TabRow>
-    </NavContainer>
-  );
+	const tabs: { key: TabType; label: string; icon: React.ReactNode }[] = [
+		{ key: "story", label: "스토리", icon: <GiFountainPen /> },
+		{ key: "map", label: "지도", icon: <IoLocationOutline /> },
+		{ key: "list", label: "목록", icon: <IoCalendarClearOutline /> },
+	];
+
+	return (
+		<NavContainer>
+			<TopRow>
+				<BackButton onClick={handleBack}>
+					<IoChevronBack size={24} />
+				</BackButton>
+				<TitleText>{title}</TitleText>
+			</TopRow>
+			<TabRow>
+				{tabs.map((tab) => (
+					<Tab
+						key={tab.key}
+						$active={activeTab === tab.key}
+						onClick={() => handleTabChange(tab.key)}
+					>
+						{tab.icon} {tab.label}
+					</Tab>
+				))}
+			</TabRow>
+		</NavContainer>
+	);
 };
 
 export default NavigationBar;

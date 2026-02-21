@@ -2,11 +2,10 @@ import { useState } from "react";
 import { enablePush } from "@/firebase/push";
 
 // const LOCAL_HOST_URL = "http://localhost:8080/api/noti/token"
-const NOTI_TOKEN_API_URL = "https://waffle-project-dev-server.xyz/api/noti/token";
-const NOTI_PARTNER_API_URL = "https://waffle-project-dev-server.xyz/api/noti/partner";
-
-
-
+const NOTI_TOKEN_API_URL =
+	"https://waffle-project-dev-server.xyz/api/noti/token";
+const NOTI_PARTNER_API_URL =
+	"https://waffle-project-dev-server.xyz/api/noti/partner";
 
 const FcmTestPage = () => {
 	const [status, setStatus] = useState("대기 중");
@@ -110,7 +109,11 @@ const FcmTestPage = () => {
 				<button type="button" onClick={handleSendTokenToBackend}>
 					토큰 서버 전송
 				</button>
-				<button type="button" onClick={handleSendPartnerNoti} style={{ marginLeft: 8 }}>
+				<button
+					type="button"
+					onClick={handleSendPartnerNoti}
+					style={{ marginLeft: 8 }}
+				>
 					파트너 알림 전송
 				</button>
 			</div>

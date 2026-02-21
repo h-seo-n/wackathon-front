@@ -22,13 +22,13 @@ const DividerText = styled.span<{ theme: ThemeProps }>`
 `;
 
 const Divider = ({ text = "또는" }: { text?: string }) => {
-  return (
-    <DividerContainer>
-      <Line />
-      <DividerText>{text}</DividerText>
-      <Line />
-    </DividerContainer>
-  );
+	return (
+		<DividerContainer>
+			<Line />
+			<DividerText>{text}</DividerText>
+			<Line />
+		</DividerContainer>
+	);
 };
 
 export default Divider;
