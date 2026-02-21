@@ -46,6 +46,11 @@ export async function finishSession(
 	return res.data;
 }
 
+export async function getActiveSession(): Promise<{ sessionId: number } | null> {
+	const res = await api.get<{ sessionId: number } | null>("/sessions/active");
+	return res.data;
+}
+
 export async function uploadSessionPhoto(
 	sessionId: number,
 	file: File,
