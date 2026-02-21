@@ -22,6 +22,6 @@ export async function acceptSession(sessionId: number): Promise<void> {
 
 // 추가: GET /sessions/{id}
 export async function getSession(sessionId: number): Promise<any> {
-  const res = await api.get(`/sessions/${sessionId}`);
+  const res = await api.get(`/sessions/${sessionId}/status`);
   return res.data;
 }
