@@ -93,6 +93,12 @@ function SessionMapInner() {
 		uploadPhotoAndBroadcast,
 	} = useSession();
 
+	useEffect(() => {
+		if (status === "DONE" && !isWsConnected) {
+			navigate("/story", { replace: true });
+		}
+	}, [status, isWsConnected, navigate]);
+
 	const mapRef = useRef<any>(null);
 	const myMarkerRef = useRef<any>(null);
 	const partnerMarkerRef = useRef<any>(null);
