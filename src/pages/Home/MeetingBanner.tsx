@@ -58,7 +58,7 @@ const MeetingBanner = ({ title, explanation }: MeetingBannerProp) => {
   useEffect(() => {
     const fetchPartnerProfile = async () => {
       try {
-        const res = await api.get("/api/couples/profile");
+        const res = await api.get("/couples/profile");
         const { user1, user2 } = res.data;
         const partner = user1.id === user?.id ? user2 : user1;
         if (partner.profileImageUrl) {

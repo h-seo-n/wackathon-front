@@ -100,7 +100,7 @@ const MeetingList = ({ meetings }: MeetingListProps) => {
 							<DateText>{meeting.date}</DateText>
 							<TimeText>{meeting.time}</TimeText>
 						</DateGroup>
-						<MeetingNumber>만남 #{index + 1}</MeetingNumber>
+						<MeetingNumber>만남 #{meetings.length - index}</MeetingNumber>
 					</CardHeader>
 
 					<StatsRow>
