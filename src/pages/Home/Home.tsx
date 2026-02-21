@@ -93,7 +93,6 @@ const HomePage = () => {
 		console.log("[home] WS cleanup");
 		wsHandleRef.current?.close();
 		wsHandleRef.current = null;
-		setIsWsConnected(false);
 	}, []);
 
 	const openWsConnection = useCallback(
@@ -108,17 +107,14 @@ const HomePage = () => {
 			const handler = openSessionWs(sessionId, token, {
 				onOpen: () => {
 					console.log("[home] WS open", handler?.url, "sessionId", sessionId);
-					setIsWsConnected(true);
 					setSessionStatus("connected");
 				},
 				onClose: () => {
 					console.log("[home] WS closed sessionId", sessionId);
-					setIsWsConnected(false);
 					setSessionStatus("false");
 				},
 				onError: () => {
 					console.error("[home] WS error sessionId", sessionId);
-					setIsWsConnected(false);
 				},
 				onMessage: (data) => {
 					console.log("[home] WS msg", data);
