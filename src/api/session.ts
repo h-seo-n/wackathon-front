@@ -35,3 +35,14 @@ export async function uploadSessionPhoto(
 	});
 	return res.data;
 }
+
+// 메시지 업로드: /sessions/{session_id}/message (POST)
+export async function uploadSessionMessage(
+	sessionId: number,
+	message: string,
+) {
+	const res = await api.post(`/sessions/${sessionId}/message`, {
+		message,
+	});
+	return res.data;
+}
