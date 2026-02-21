@@ -6,7 +6,7 @@ export const uploadProfileImg = async (file: File) => {
 	fd.append("file", file);
 
 	const { data } = await api.post<{ profileImageUrl: string }>(
-		"/users/me/profile-image",
+		"/users/profile-image/upload",
 		fd,
 	);
 
