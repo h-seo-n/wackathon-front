@@ -54,7 +54,10 @@ function formatElapsed(ms: number) {
 }
 
 // 두 점 사이 거리(m) (Haversine)
-function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+function distanceMeters(
+	a: { lat: number; lng: number },
+	b: { lat: number; lng: number },
+) {
 	const R = 6371000;
 	const toRad = (v: number) => (v * Math.PI) / 180;
 	const dLat = toRad(b.lat - a.lat);
@@ -91,7 +94,10 @@ function SessionMapInner() {
 		sendMeetAndFinish: (pos: LatLng) => Promise<void>;
 		reloadHistory: () => Promise<void>;
 		history: SessionPoint[];
-		uploadPhotoAndBroadcast: (file: File, text?: string) => Promise<SessionPoint>;
+		uploadPhotoAndBroadcast: (
+			file: File,
+			text?: string,
+		) => Promise<SessionPoint>;
 	};
 
 	const mapRef = useRef<any>(null);
@@ -144,7 +150,10 @@ function SessionMapInner() {
 					const { latitude, longitude } = position.coords;
 					center = new window.kakao.maps.LatLng(latitude, longitude);
 				} catch (err) {
-					console.warn("Failed to get user location, using default center", err);
+					console.warn(
+						"Failed to get user location, using default center",
+						err,
+					);
 				}
 			}
 
@@ -204,7 +213,8 @@ function SessionMapInner() {
 				map,
 				position: ll,
 				image: new window.kakao.maps.MarkerImage(
-					"data:image/svg+xml;charset=UTF-8," + encodeURIComponent(markerImage.content),
+					"data:image/svg+xml;charset=UTF-8," +
+						encodeURIComponent(markerImage.content),
 					markerImage.size,
 					{ offset: markerImage.anchor },
 				),
@@ -230,7 +240,10 @@ function SessionMapInner() {
 			return;
 		} else {
 			if (partnerPolylineRef.current) partnerPolylineRef.current.setMap(map);
-			if (partnerMarkerRef.current && partnerMarkerRef.current.getMap() == null) {
+			if (
+				partnerMarkerRef.current &&
+				partnerMarkerRef.current.getMap() == null
+			) {
 				partnerMarkerRef.current.setMap(map);
 			}
 		}
@@ -245,7 +258,8 @@ function SessionMapInner() {
 				map,
 				position: ll,
 				image: new window.kakao.maps.MarkerImage(
-					"data:image/svg+xml;charset=UTF-8," + encodeURIComponent(markerImage.content),
+					"data:image/svg+xml;charset=UTF-8," +
+						encodeURIComponent(markerImage.content),
 					markerImage.size,
 					{ offset: markerImage.anchor },
 				),
@@ -273,7 +287,8 @@ function SessionMapInner() {
 
 		// 표시가 꺼져있으면 굳이 setPath 안 해도 됨 (하지만 해도 문제없음)
 		if (shareMy) myPolylineRef.current?.setPath(myTrail.map(toLatLng));
-		if (sharePartner) partnerPolylineRef.current?.setPath(partnerTrail.map(toLatLng));
+		if (sharePartner)
+			partnerPolylineRef.current?.setPath(partnerTrail.map(toLatLng));
 	}, [ready, myTrail, partnerTrail, shareMy, sharePartner]);
 
 	const handleMeet = async () => {
@@ -400,7 +415,8 @@ function SessionMapInner() {
 						</div>
 
 						<div style={{ marginTop: 10, fontSize: 12, color: "#888" }}>
-							상태: {status ?? "로딩중"} · WS: {isWsConnected ? "연결됨" : "끊김"}
+							상태: {status ?? "로딩중"} · WS:{" "}
+							{isWsConnected ? "연결됨" : "끊김"}
 						</div>
 					</div>
 				</div>

@@ -1,15 +1,15 @@
-import { LoginPage, SignupPage } from '@/pages/Auth/AuthPage';
-import LiveMapPage from '@/pages/LiveMapPage';
-import { createBrowserRouter } from 'react-router-dom';
+import { LoginPage, SignupPage } from "@/pages/Auth/AuthPage";
+import LiveMapPage from "@/pages/LiveMapPage";
+import { createBrowserRouter } from "react-router-dom";
 
 export const router = createBrowserRouter([
-    {
-        // errorElement:  <NotFound />,
-        children: [
-            // { index: true, element: <Home /> }
-            { path: '/login', element: <LoginPage /> },
-            { path: '/signup', element: <SignupPage /> },
-            { path: '/LiveMap', element: <LiveMapPage sessionId={1}/> },
-        ],
-    },
-])
+	{
+		// errorElement:  <NotFound />,
+		children: [
+			// { index: true, element: <Home /> }
+			{ path: "/login", element: <LoginPage /> },
+			{ path: "/signup", element: <SignupPage /> },
+			{ path: "/LiveMap", element: <LiveMapPage sessionId={1} /> },
+		],
+	},
+]);

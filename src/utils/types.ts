@@ -1,9 +1,6 @@
 export type SessionStatus = "PENDING" | "ACTIVE" | "DONE";
 
-export type SessionEndReason =
-  | "MEET_CONFIRMED"
-  | "TIMEOUT"
-  | "MANUAL_CANCEL";
+export type SessionEndReason = "MEET_CONFIRMED" | "TIMEOUT" | "MANUAL_CANCEL";
 
 export type SessionPointType = "PHOTO" | "MEMO" | "MEET_DONE" | "POINT";
 
@@ -20,34 +17,34 @@ export type SessionPoint = {
 };
 
 export interface BasePointHistory {
-  createdAt: string;
-  lat: number;
-  lng: number;
+	createdAt: string;
+	lat: number;
+	lng: number;
 }
 
 export interface PhotoHistory extends BasePointHistory {
-  type: "PHOTO";
-  photoPath: string;
+	type: "PHOTO";
+	photoPath: string;
 }
 
 export interface MemoHistory extends BasePointHistory {
-  type: "MEMO";
-  text: string;
+	type: "MEMO";
+	text: string;
 }
 
 export interface MeetDoneHistory extends BasePointHistory {
-  type: "MEET_DONE";
+	type: "MEET_DONE";
 }
 
 export interface PointHistory extends BasePointHistory {
-  type: "POINT";
+	type: "POINT";
 }
 
 export type PointHistoryDto =
-  | PhotoHistory
-  | MemoHistory
-  | MeetDoneHistory
-  | PointHistory;
+	| PhotoHistory
+	| MemoHistory
+	| MeetDoneHistory
+	| PointHistory;
 
 export interface SessionHistoryResponse {
 	user1: PointHistoryDto;
@@ -62,39 +59,39 @@ export interface HistoryResponse {
 export type LatLng = { lat: number; lng: number };
 
 export interface Session {
-  id: number;
-  coupleId: number;
-  requestUserId: number;
+	id: number;
+	coupleId: number;
+	requestUserId: number;
 
-  requestedAt: string; // ISO date-time
-  status: SessionStatus;
+	requestedAt: string; // ISO date-time
+	status: SessionStatus;
 
-  startAt: string | null; // ACTIVE 전에는 null 가능성 있음
-  endAt: string | null;
+	startAt: string | null; // ACTIVE 전에는 null 가능성 있음
+	endAt: string | null;
 
-  endReason: SessionEndReason | null;
+	endReason: SessionEndReason | null;
 
-  meetAt: string | null;
-  meetLat: number | null;
-  meetLng: number | null;
+	meetAt: string | null;
+	meetLat: number | null;
+	meetLng: number | null;
 }
 
 export interface SessionStatusResponse {
-  sessionId: number;
-  coupleId: number;
-  requestUserId: number;
+	sessionId: number;
+	coupleId: number;
+	requestUserId: number;
 
-  status: SessionStatus;
+	status: SessionStatus;
 
-  requestedAt: string; // ISO date-time
-  startAt: string | null;
-  endAt: string | null;
+	requestedAt: string; // ISO date-time
+	startAt: string | null;
+	endAt: string | null;
 
-  endReason: SessionEndReason | null;
+	endReason: SessionEndReason | null;
 
-  meetAt: string | null;
-  meetLat: number | null;
-  meetLng: number | null;
+	meetAt: string | null;
+	meetLat: number | null;
+	meetLng: number | null;
 }
 
 export interface FinishSessionRequest {

@@ -38,7 +38,14 @@ export function useSession() {
  * WS로 보내는 payload 스펙 (요구사항 기준)
  */
 type WsOutMessage =
-	| { type: "POINT"; lat: number; lng: number; ts: number; text?: string; photoPath?: string }
+	| {
+			type: "POINT";
+			lat: number;
+			lng: number;
+			ts: number;
+			text?: string;
+			photoPath?: string;
+	  }
 	| { type: "MEET_CONFIRM"; lat: number; lng: number; ts: number }
 	| { type: "CANCEL"; ts: number };
 
@@ -48,8 +55,22 @@ type WsOutMessage =
  * - text/photoPath 포함 가능
  */
 type WsInMessage =
-	| { type: "POINT"; lat: number; lng: number; ts?: number; text?: string; photoPath?: string; userId?: number }
-	| { type: "MEET_CONFIRM"; lat: number; lng: number; ts?: number; userId?: number }
+	| {
+			type: "POINT";
+			lat: number;
+			lng: number;
+			ts?: number;
+			text?: string;
+			photoPath?: string;
+			userId?: number;
+	  }
+	| {
+			type: "MEET_CONFIRM";
+			lat: number;
+			lng: number;
+			ts?: number;
+			userId?: number;
+	  }
 	| { type: "CANCEL"; ts?: number; userId?: number }
 	| { type: "ERROR"; message: string };
 
@@ -59,7 +80,10 @@ type Props = {
 	children: React.ReactNode;
 };
 
-export function SessionProvider({ sessionId: initialSessionId, children }: Props) {
+export function SessionProvider({
+	sessionId: initialSessionId,
+	children,
+}: Props) {
 	/**
 	 * env 예시:
 	 * - VITE_WS_DOMAIN = "waffle-project-dev-server.xyz"  (또는 "wss://..." 전체)
@@ -110,25 +134,22 @@ export function SessionProvider({ sessionId: initialSessionId, children }: Props
 	// WS URL builder
 	// ---------------------------
 
-	const buildWsUrl = useCallback(
-		(sid: number) => {
-			const token = TokenService.getToken?.() ?? TokenService.getToken?.() ?? "";
-			if (!token) {
-				// 토큰 없으면 연결해도 인증 실패 가능성이 큼
-				// (원하면 throw 처리)
-				console.warn("[WS] token missing");
-			}
+	const buildWsUrl = useCallback((sid: number) => {
+		const token = TokenService.getToken?.() ?? TokenService.getToken?.() ?? "";
+		if (!token) {
+			// 토큰 없으면 연결해도 인증 실패 가능성이 큼
+			// (원하면 throw 처리)
+			console.warn("[WS] token missing");
+		}
 
-			// WS_BASE가 "wss://domain" 또는 "wss://domain/" 라고 가정
-			const base = WS_BASE.replace(/\/+$/, "");
-			// 스펙: wss://<domain>/ws/session?sessionId=123&token=<JWT>
-			const url = `${base}/ws/session?sessionId=${encodeURIComponent(
-				String(sid),
-			)}&token=${encodeURIComponent(token)}`;
-			return url;
-		},
-		[],
-	);
+		// WS_BASE가 "wss://domain" 또는 "wss://domain/" 라고 가정
+		const base = WS_BASE.replace(/\/+$/, "");
+		// 스펙: wss://<domain>/ws/session?sessionId=123&token=<JWT>
+		const url = `${base}/ws/session?sessionId=${encodeURIComponent(
+			String(sid),
+		)}&token=${encodeURIComponent(token)}`;
+		return url;
+	}, []);
 
 	// ---------------------------
 	// WS send / connect / disconnect
@@ -191,7 +212,11 @@ export function SessionProvider({ sessionId: initialSessionId, children }: Props
 		stopWatchPosition();
 
 		const ws = wsRef.current;
-		if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+		if (
+			ws &&
+			(ws.readyState === WebSocket.OPEN ||
+				ws.readyState === WebSocket.CONNECTING)
+		) {
 			ws.close();
 		}
 		wsRef.current = null;
@@ -304,7 +329,11 @@ export function SessionProvider({ sessionId: initialSessionId, children }: Props
 	// (7) 사진 업로드 -> 응답(photoPath 등) 받으면 WS로 다시 송신
 	const uploadPhotoAndBroadcast = useCallback(
 		async (file: File, text?: string) => {
-			const point: SessionPoint = await uploadSessionPhoto(sessionId, file, text);
+			const point: SessionPoint = await uploadSessionPhoto(
+				sessionId,
+				file,
+				text,
+			);
 
 			// 서버가 저장한 좌표/경로를 우선 사용 (없으면 내 최신 좌표 fallback)
 			const fallback = latestPosRef.current ?? myPos;
@@ -313,18 +342,18 @@ export function SessionProvider({ sessionId: initialSessionId, children }: Props
 			const lng = point.lng ?? fallback?.lng;
 
 			if (lat == null || lng == null) {
-			console.warn("[uploadPhotoAndBroadcast] no lat/lng to broadcast");
-			return point;
+				console.warn("[uploadPhotoAndBroadcast] no lat/lng to broadcast");
+				return point;
 			}
 
 			// WS 스펙: photoPath를 담아 POINT로 전송
 			sendWs({
-			type: "POINT",
-			lat,
-			lng,
-			ts: Date.now(),
-			...(point.text ? { text: point.text } : {}),
-			...(point.photoPath ? { photoPath: point.photoPath } : {}),
+				type: "POINT",
+				lat,
+				lng,
+				ts: Date.now(),
+				...(point.text ? { text: point.text } : {}),
+				...(point.photoPath ? { photoPath: point.photoPath } : {}),
 			});
 
 			// 화면 동기화: history 다시 로드
@@ -439,7 +468,12 @@ export function SessionProvider({ sessionId: initialSessionId, children }: Props
 
 			// 기존 sendMeet는 스펙상 MEET_CONFIRM으로 대체
 			sendMeet: (pos: LatLng) => {
-				sendWs({ type: "MEET_CONFIRM", lat: pos.lat, lng: pos.lng, ts: Date.now() });
+				sendWs({
+					type: "MEET_CONFIRM",
+					lat: pos.lat,
+					lng: pos.lng,
+					ts: Date.now(),
+				});
 			},
 
 			sendMeetAndFinish: meetAndFinish,

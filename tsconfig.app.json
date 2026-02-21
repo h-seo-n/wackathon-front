@@ -19,7 +19,7 @@
 		/* Path */
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./src/*"],
+			"@/*": ["./src/*"]
 		},
 
 		/* Linting */
