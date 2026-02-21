@@ -82,6 +82,8 @@ const HomePage = () => {
 		"false" | "pending" | "received" | "connected"
 	>("false");
 	const [toast, setToast] = useState<string | null>(null);
+	const [sessionId, setSessionId] = useState<number | null>(null);
+	const [isWsConnected, setIsWsConnected] = useState(false);
 	const wsHandleRef = useRef<ReturnType<typeof openSessionWs> | null>(null);
 	const partnerName = "상대방";
 
@@ -125,8 +127,8 @@ const HomePage = () => {
 				},
 			});
 			wsHandleRef.current = handler;
-	},
-	[cleanupWs],
+		},
+		[cleanupWs],
 	);
 
 	const startSessionFlow = useCallback(async () => {
@@ -134,6 +136,7 @@ const HomePage = () => {
 		try {
 			const session = await createSession();
 			console.log("[home] 세션 생성 성공", session.id);
+			setSessionId(session.id);
 			setSessionStatus("pending");
 			openWsConnection(session.id);
 		} catch (err) {
@@ -148,6 +151,7 @@ const HomePage = () => {
 			const active = await getActiveSession();
 			if (active?.sessionId) {
 				setToast("파트너가 세션을 열었습니다. 연결합니다.");
+				setSessionId(active.sessionId);
 				setSessionStatus("received");
 				openWsConnection(active.sessionId);
 			} else {
@@ -252,6 +256,11 @@ const HomePage = () => {
 							위치 공유를 시작하고 서로의 위치를 확인해보세요!
 						</Explanation>
 					</>
+				)}
+				{sessionId && sessionStatus !== "false" && (
+					<Explanation style={{ fontWeight: 600 }}>
+						{`세션 ID: ${sessionId} · WS ${isWsConnected ? "연결됨" : "대기 중"}`}
+					</Explanation>
 				)}
 
 				{sessionStatus === "false" ? (
