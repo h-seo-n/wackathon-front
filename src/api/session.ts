@@ -1,5 +1,5 @@
 import api from "./axios";
-import type { SessionHistoryResponse, SessionStatus } from "../utils/types";
+import type { SessionHistoryResponse, SessionStatus } from "../utils/types/sessionTypes";
 
 export async function getSessionStatus(sessionId: number) {
 	const res = await api.get<{ status: SessionStatus }>(

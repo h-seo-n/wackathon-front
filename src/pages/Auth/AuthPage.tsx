@@ -6,10 +6,25 @@ import TextInput from "./TextInput";
 import HeartIcon from "/images/Heart.svg"
 import { PinkContainer } from "@/components/PinkContainer";
 import { Explanation, InputLabel, Title } from "@/components/Text";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 
 
 export const LoginPage = () => {
+    const [email, setEmail] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+      const { login } = useAuth();
+
     const navigate = useNavigate();
+
+    const handleLogin = async () => {
+        try {
+        await login({ email, password });
+        navigate("/home");
+        } catch {
+        alert("로그인에 실패했습니다.");
+        }
+    };
 
     return (
         <PinkContainer>
@@ -20,13 +35,13 @@ export const LoginPage = () => {
             <Col style={{ gap: 16, width: '100%', marginTop: 30 }}>
                 <Col style={{ gap: 4 }}>
                     <InputLabel style={{ textAlign: "start" }}>이메일</InputLabel>
-                    <TextInput type="email" />
+                    <TextInput type="email" onChange={(e) => setEmail(e.target.value)} />
                 </Col>
                 <Col style={{ gap: 4 }}>
                     <InputLabel style={{ textAlign: "start" }}>비밀번호</InputLabel>
-                    <TextInput type="password" />
+                    <TextInput type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 </Col>
-                <PinkButton>로그인</PinkButton>
+                <PinkButton onClick={handleLogin}>로그인</PinkButton>
                 <TextButton onClick={()=> { navigate('/signup'); } }>계정이 없으신가요? 회원가입</TextButton>
             </Col>
         </Wrapper>
@@ -36,6 +51,20 @@ export const LoginPage = () => {
 
 export const SignupPage = () => {
     const navigate = useNavigate();
+    const { signup } = useAuth();
+    const [nickname, setNickname] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+  const handleSignup = async () => {
+    try {
+      await signup({ nickname, email, password });
+      navigate("/home");
+    } catch {
+      alert("회원가입에 실패했습니다.");
+    }
+  };
+
 
     return (
         <PinkContainer>
@@ -46,17 +75,17 @@ export const SignupPage = () => {
             <Col style={{ gap: 16, width: '100%', marginTop: 50 }}>
                 <Col style={{ gap: 4 }}>
                     <InputLabel style={{ textAlign: "start" }}>이름</InputLabel>
-                    <TextInput type="text" />
+                    <TextInput type="text" value={nickname} onChange={(e) => setNickname(e.target.value)}/>
                 </Col>
                 <Col style={{ gap: 4 }}>
                     <InputLabel style={{ textAlign: "start" }}>이메일</InputLabel>
-                    <TextInput type="email" />
+                    <TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </Col>
                 <Col style={{ gap: 4 }}>
                     <InputLabel style={{ textAlign: "start" }}>비밀번호</InputLabel>
-                    <TextInput type="password" />
+                    <TextInput type="password" onChange={(e) => setPassword(e.target.value)}/>
                 </Col>
-                <PinkButton>회원가입</PinkButton>
+                <PinkButton onClick={()=>handleSignup}>회원가입</PinkButton>
                 <TextButton onClick={()=> { navigate('/login'); } }>계정이 있으신가요? 로그인</TextButton>
             </Col>
         </Wrapper>

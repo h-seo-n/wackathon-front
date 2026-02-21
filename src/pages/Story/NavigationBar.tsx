@@ -26,11 +26,12 @@ const TopRow = styled.div`
 const BackButton = styled.button`
   background: none;
   border: none;
-  padding: 8px;
+  padding: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   color: #1A1A1A;
+  outline: none;
 `;
 
 const TitleText = styled(Title)`
@@ -61,7 +62,13 @@ const Tab = styled.button<{ $active: boolean; theme: ThemeProps }>`
   width: 100%;
   background-color: ${(props) => (props.$active ? props.theme.colors.primary : props.theme.colors.gray )};
   color: ${(props) => (props.$active ? "#ffffff" : props.theme.colors.darkgray )};
+  outline: none;
+
+  &:focus {
+    outline: none;
+  }
 `;
+
 
 type TabType = "story" | "map" | "list";
 
