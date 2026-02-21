@@ -1,48 +1,59 @@
 import api from "./axios";
-import type { SessionHistoryResponse, SessionStatus } from "../utils/types";
+import type { Session, SessionPoint, SessionStatusResponse, HistoryResponse, FinishSessionRequest } from "../utils/types";
 
-export async function getSessionStatus(sessionId: number) {
-	const res = await api.get<{ status: SessionStatus }>(
-		`/sessions/${sessionId}/status`,
-	);
-	return res.data;
+export async function getSessionStatus(
+  sessionId: number,
+): Promise<SessionStatusResponse> {
+  const res = await api.get<SessionStatusResponse>(
+    `/sessions/${sessionId}/status`,
+  );
+  return res.data;
 }
 
-export async function getSessionHistory(sessionId: number) {
-	const res = await api.get<SessionHistoryResponse>(
-		`/sessions/${sessionId}/history`,
-	);
-	return res.data;
+export async function getSessionHistory(
+  sessionId: number,
+): Promise<HistoryResponse> {
+  const res = await api.get<HistoryResponse>(`/sessions/${sessionId}/history`);
+  return res.data;
 }
 
-export async function finishSession(sessionId: number) {
-	const res = await api.post(`/sessions/${sessionId}/finish`);
-	return res.data;
+export async function createSession(): Promise<Session> {
+  const res = await api.post<Session>("/sessions");
+  return res.data;
 }
 
-// 사진 업로드: /sessions/{session_id}/photo (POST)
+export async function getSessions(): Promise<Session[]> {
+  const res = await api.get<Session[]>("/sessions");
+  return res.data;
+}
+
+export async function acceptSession(sessionId: number): Promise<Session> {
+  const res = await api.post<Session>(`/sessions/${sessionId}/accept`);
+  return res.data;
+}
+
+export async function finishSession(
+  sessionId: number,
+  body: FinishSessionRequest,
+) {
+  const res = await api.post(`/sessions/${sessionId}/finish`, body);
+  return res.data;
+}
+
 export async function uploadSessionPhoto(
-	sessionId: number,
-	file: File,
-	text?: string,
-) {
-	const form = new FormData();
-	form.append("photo", file);
-	if (text) form.append("text", text);
+  sessionId: number,
+  file: File,
+  text?: string,
+): Promise<SessionPoint> {
+  const form = new FormData();
+  form.append("photo", file);
+  if (text) form.append("text", text);
 
-	const res = await api.post(`/sessions/${sessionId}/photo`, form, {
-		headers: { "Content-Type": "multipart/form-data" },
-	});
-	return res.data;
-}
+  const res = await api.post<SessionPoint>(
+    `/sessions/${sessionId}/photos`,
+    form
+    // ❗ Content-Type 직접 지정하지 않음
+  );
 
-// 메시지 업로드: /sessions/{session_id}/message (POST)
-export async function uploadSessionMessage(
-	sessionId: number,
-	message: string,
-) {
-	const res = await api.post(`/sessions/${sessionId}/message`, {
-		message,
-	});
-	return res.data;
+  return res.data;
 }

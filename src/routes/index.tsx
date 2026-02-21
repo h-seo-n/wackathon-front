@@ -1,4 +1,5 @@
 import { LoginPage, SignupPage } from '@/pages/Auth/AuthPage';
+import LiveMapPage from '@/pages/LiveMapPage';
 import { createBrowserRouter } from 'react-router-dom';
 
 export const router = createBrowserRouter([
@@ -8,6 +9,7 @@ export const router = createBrowserRouter([
             // { index: true, element: <Home /> }
             { path: '/login', element: <LoginPage /> },
             { path: '/signup', element: <SignupPage /> },
+            { path: '/LiveMap', element: <LiveMapPage sessionId={1}/> },
         ],
     },
 ])

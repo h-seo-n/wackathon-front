@@ -1,8 +1,7 @@
 // SessionMapPage.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SessionProvider, useSession } from "../context/SessionProvider";
-import { uploadSessionPhoto, uploadSessionMessage } from "../api/session";
-import type { LatLng } from "../utils/types";
+import type { LatLng, SessionPoint } from "../utils/types";
 
 declare global {
 	interface Window {
@@ -23,6 +22,20 @@ function loadKakaoMap(appKey: string) {
 	});
 }
 
+function createCircleMarker(color: string, size = 20) {
+	const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" fill="${color}" stroke="white" stroke-width="4" />
+    </svg>
+  `;
+
+	return {
+		content: svg,
+		size: new window.kakao.maps.Size(size, size),
+		anchor: new window.kakao.maps.Point(size / 2, size / 2),
+	};
+}
+
 type Props = { sessionId: number };
 
 export default function LiveMapPage({ sessionId }: Props) {
@@ -41,10 +54,7 @@ function formatElapsed(ms: number) {
 }
 
 // 두 점 사이 거리(m) (Haversine)
-function distanceMeters(
-	a: { lat: number; lng: number },
-	b: { lat: number; lng: number },
-) {
+function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
 	const R = 6371000;
 	const toRad = (v: number) => (v * Math.PI) / 180;
 	const dLat = toRad(b.lat - a.lat);
@@ -67,12 +77,22 @@ function SessionMapInner() {
 		status,
 		myPos,
 		partnerPos,
-		history,
 		isWsConnected,
 		sendMeetAndFinish,
 		reloadHistory,
-		// 만약 provider에 stopSharing / startSharing 등을 넣었다면 여기서 같이 쓰면 더 좋음
-	} = useSession();
+		// ✅ Provider가 제공해야 함 (아래 참고)
+		uploadPhotoAndBroadcast,
+	} = useSession() as any as {
+		sessionId: number | null;
+		status: string | null;
+		myPos: LatLng | null;
+		partnerPos: LatLng | null;
+		isWsConnected: boolean;
+		sendMeetAndFinish: (pos: LatLng) => Promise<void>;
+		reloadHistory: () => Promise<void>;
+		history: SessionPoint[];
+		uploadPhotoAndBroadcast: (file: File, text?: string) => Promise<SessionPoint>;
+	};
 
 	const mapRef = useRef<any>(null);
 	const myMarkerRef = useRef<any>(null);
@@ -85,7 +105,6 @@ function SessionMapInner() {
 
 	const [ready, setReady] = useState(false);
 	const [photoUploading, setPhotoUploading] = useState(false);
-	const [messageUploading, setMessageUploading] = useState(false);
 
 	// 하단 카드용 UI 상태(“활성화” 토글 표시용)
 	const [shareMy, setShareMy] = useState(true);
@@ -95,6 +114,11 @@ function SessionMapInner() {
 	const startAtRef = useRef<number>(Date.now());
 	const [elapsed, setElapsed] = useState("0:00");
 
+	// ✅ 새로고침 시 history 다시 받아오기 (요구사항 1)
+	useEffect(() => {
+		void reloadHistory();
+	}, [reloadHistory]);
+
 	useEffect(() => {
 		const t = window.setInterval(() => {
 			setElapsed(formatElapsed(Date.now() - startAtRef.current));
@@ -102,7 +126,7 @@ function SessionMapInner() {
 		return () => window.clearInterval(t);
 	}, []);
 
-	// 1) Kakao Map init (중요: myPos를 dependency로 두면 지도 재생성됨 → 한번만 init 추천)
+	// 1) Kakao Map init (중요: 한번만 init)
 	useEffect(() => {
 		(async () => {
 			await loadKakaoMap(KAKAO_KEY);
@@ -110,7 +134,7 @@ function SessionMapInner() {
 			const container = document.getElementById("session-map");
 			if (!container) return;
 
-			let center = new window.kakao.maps.LatLng(37.5665, 126.978); // 서울 시청 기본 위치
+			let center = new window.kakao.maps.LatLng(37.5665, 126.978); // 서울 시청 기본
 
 			if (navigator.geolocation) {
 				try {
@@ -118,25 +142,20 @@ function SessionMapInner() {
 						navigator.geolocation.getCurrentPosition(res, rej),
 					);
 					const { latitude, longitude } = position.coords;
-
 					center = new window.kakao.maps.LatLng(latitude, longitude);
 				} catch (err) {
-					console.warn(
-						"Failed to get user location, using default center",
-						err,
-					);
+					console.warn("Failed to get user location, using default center", err);
 				}
 			}
-			const map = new window.kakao.maps.Map(container, {
-				center,
-				level: 3,
-			});
+
+			const map = new window.kakao.maps.Map(container, { center, level: 3 });
 			mapRef.current = map;
 
 			myPolylineRef.current = new window.kakao.maps.Polyline({
 				map,
 				path: [],
 				strokeWeight: 6,
+				strokeColor: "#F6339A",
 				strokeOpacity: 0.8,
 				strokeStyle: "solid",
 			});
@@ -144,6 +163,7 @@ function SessionMapInner() {
 			partnerPolylineRef.current = new window.kakao.maps.Polyline({
 				map,
 				path: [],
+				strokeColor: "#F9A8D4",
 				strokeWeight: 6,
 				strokeOpacity: 0.8,
 				strokeStyle: "solid",
@@ -154,47 +174,92 @@ function SessionMapInner() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	// 2) 내 위치 마커 업데이트
+	// 2) 내 위치 마커 업데이트 (표시 토글 반영)
 	useEffect(() => {
-		if (!ready || !mapRef.current || !myPos) return;
+		if (!ready || !mapRef.current) return;
+
 		const map = mapRef.current;
+
+		// shareMy가 꺼지면 마커/폴리라인 숨김
+		if (!shareMy) {
+			if (myMarkerRef.current) myMarkerRef.current.setMap(null);
+			// 폴리라인은 setMap(null)로 숨김 가능
+			if (myPolylineRef.current) myPolylineRef.current.setMap(null);
+			return;
+		} else {
+			// 다시 켤 때 map 연결 복구
+			if (myPolylineRef.current) myPolylineRef.current.setMap(map);
+			if (myMarkerRef.current && myMarkerRef.current.getMap() == null) {
+				myMarkerRef.current.setMap(map);
+			}
+		}
+
+		if (!myPos) return;
+
 		const ll = new window.kakao.maps.LatLng(myPos.lat, myPos.lng);
 
 		if (!myMarkerRef.current) {
+			const markerImage = createCircleMarker("#F6339A", 18);
 			myMarkerRef.current = new window.kakao.maps.Marker({
 				map,
 				position: ll,
+				image: new window.kakao.maps.MarkerImage(
+					"data:image/svg+xml;charset=UTF-8," + encodeURIComponent(markerImage.content),
+					markerImage.size,
+					{ offset: markerImage.anchor },
+				),
 				title: "나",
 			});
 		} else {
 			myMarkerRef.current.setPosition(ll);
 		}
 
-		// 처음만 센터 잡고 싶으면 플래그 추가 가능
+		// 처음만 센터 잡고 싶으면 플래그 추가 가능. 지금은 계속 따라감.
 		map.setCenter(ll);
-	}, [ready, myPos]);
+	}, [ready, myPos, shareMy]);
 
-	// 3) 상대 위치 마커 업데이트
+	// 3) 상대 위치 마커 업데이트 (표시 토글 반영)
 	useEffect(() => {
-		if (!ready || !mapRef.current || !partnerPos) return;
+		if (!ready || !mapRef.current) return;
+
 		const map = mapRef.current;
+
+		if (!sharePartner) {
+			if (partnerMarkerRef.current) partnerMarkerRef.current.setMap(null);
+			if (partnerPolylineRef.current) partnerPolylineRef.current.setMap(null);
+			return;
+		} else {
+			if (partnerPolylineRef.current) partnerPolylineRef.current.setMap(map);
+			if (partnerMarkerRef.current && partnerMarkerRef.current.getMap() == null) {
+				partnerMarkerRef.current.setMap(map);
+			}
+		}
+
+		if (!partnerPos) return;
+
 		const ll = new window.kakao.maps.LatLng(partnerPos.lat, partnerPos.lng);
 
 		if (!partnerMarkerRef.current) {
+			const markerImage = createCircleMarker("#F9A8D4", 18);
 			partnerMarkerRef.current = new window.kakao.maps.Marker({
 				map,
 				position: ll,
+				image: new window.kakao.maps.MarkerImage(
+					"data:image/svg+xml;charset=UTF-8," + encodeURIComponent(markerImage.content),
+					markerImage.size,
+					{ offset: markerImage.anchor },
+				),
 				title: "상대",
 			});
 		} else {
 			partnerMarkerRef.current.setPosition(ll);
 		}
-	}, [ready, partnerPos]);
+	}, [ready, partnerPos, sharePartner]);
 
-	// 4) 폴리라인 업데이트
+	// 4) 폴리라인 업데이트 (trail 축적은 표시 토글과 무관하게 유지)
 	useEffect(() => {
 		if (!myPos) return;
-		setMyTrail((prev) => [...prev.slice(-200), myPos]); // 최대 200개
+		setMyTrail((prev) => [...prev.slice(-200), myPos]);
 	}, [myPos]);
 
 	useEffect(() => {
@@ -205,36 +270,29 @@ function SessionMapInner() {
 	useEffect(() => {
 		if (!ready) return;
 		const toLatLng = (p: LatLng) => new window.kakao.maps.LatLng(p.lat, p.lng);
-		myPolylineRef.current?.setPath(myTrail.map(toLatLng));
-		partnerPolylineRef.current?.setPath(partnerTrail.map(toLatLng));
-	}, [ready, myTrail, partnerTrail]);
+
+		// 표시가 꺼져있으면 굳이 setPath 안 해도 됨 (하지만 해도 문제없음)
+		if (shareMy) myPolylineRef.current?.setPath(myTrail.map(toLatLng));
+		if (sharePartner) partnerPolylineRef.current?.setPath(partnerTrail.map(toLatLng));
+	}, [ready, myTrail, partnerTrail, shareMy, sharePartner]);
 
 	const handleMeet = async () => {
 		if (!myPos) return;
 		await sendMeetAndFinish(myPos);
 	};
 
+	// ✅ (7) 사진 업로드: Provider 액션으로 처리 (업로드→응답(SessionPoint)→WS 재전송→history 갱신)
 	const handlePhotoUpload = async (file: File) => {
 		if (!sessionId) return;
 		setPhotoUploading(true);
 		try {
-			await uploadSessionPhoto(sessionId, file);
-			await reloadHistory();
+			await uploadPhotoAndBroadcast(file);
+			// provider 내부에서 reloadHistory 해주지만, 안전하게 한 번 더 원하면 아래 유지
+			// await reloadHistory();
 		} finally {
 			setPhotoUploading(false);
 		}
 	};
-
-	const handleMessageUpload = async (message: string) => {
-		if (!sessionId) return;
-		setMessageUploading(true);
-		try {
-			await uploadSessionMessage(sessionId, message);
-			await reloadHistory();
-		} finally {
-			setMessageUploading(false);
-		}
-	}
 
 	const distText = useMemo(() => {
 		if (!myPos || !partnerPos) return null;
@@ -243,18 +301,26 @@ function SessionMapInner() {
 		return `거리 ${Math.round(m)}m`;
 	}, [myPos, partnerPos]);
 
+	// ✅ 히스토리 기반으로 trail을 복원하고 싶다면(새로고침 시 경로 이어붙이기):
+	// - 현재는 실시간 위치로만 trail을 만들고 있음.
+	// - 아래 주석을 풀면 "POINT" 타입만 골라서 초기 trail 세팅 가능.
+	// useEffect(() => {
+	// 	if (!ready) return;
+	// 	const myPoints = history
+	// 		.filter((p) => p.type === "POINT" && p.lat != null && p.lng != null)
+	// 		.map((p) => ({ lat: p.lat as number, lng: p.lng as number }));
+	// 	setMyTrail(myPoints.slice(-200));
+	// }, [history, ready]);
+
 	return (
 		<div style={styles.page}>
-			{/* 지도 영역(풀스크린) */}
 			<div style={styles.mapWrap}>
 				<div id="session-map" style={styles.map} />
 
-				{/* 좌상단 거리 pill */}
 				<div style={styles.topLeftStack}>
 					{distText && <div style={styles.distancePill}>{distText}</div>}
 				</div>
 
-				{/* 우상단 (선택) 사진 업로드/만남 기록 같은 액션을 작은 버튼으로 */}
 				<div style={styles.topRightStack}>
 					<label style={styles.iconBtn}>
 						📷
@@ -267,18 +333,6 @@ function SessionMapInner() {
 								const f = e.target.files?.[0];
 								if (f) handlePhotoUpload(f);
 								e.currentTarget.value = "";
-							}}
-						/>
-					</label>
-					<label style={styles.iconBtn}>
-						✉
-						<input
-							type="text"
-							accept="image/*"
-							disabled={messageUploading}
-							style={{ display: "none" }}
-							onChange={(e) => {
-								handleMessageUpload(e.target.value);
 							}}
 						/>
 					</label>
@@ -299,7 +353,6 @@ function SessionMapInner() {
 					</button>
 				</div>
 
-				{/* 하단 카드 */}
 				<div style={styles.bottomCardWrap}>
 					<div style={styles.bottomCard}>
 						<div style={styles.row}>
@@ -315,7 +368,7 @@ function SessionMapInner() {
 						<div style={styles.row}>
 							<div style={styles.rowLeft}>
 								<span style={styles.pinkDot} />
-								<span style={styles.rowLabel}>내 위치 공유</span>
+								<span style={styles.rowLabel}>내 위치 표시</span>
 							</div>
 							<button
 								type="button"
@@ -332,7 +385,7 @@ function SessionMapInner() {
 						<div style={styles.row}>
 							<div style={styles.rowLeft}>
 								<span style={styles.lightPinkDot} />
-								<span style={styles.rowLabel}>상대방 위치 공유</span>
+								<span style={styles.rowLabel}>상대 위치 표시</span>
 							</div>
 							<button
 								type="button"
@@ -346,10 +399,8 @@ function SessionMapInner() {
 							</button>
 						</div>
 
-						{/* 상태표시(원하면 숨겨도 됨) */}
 						<div style={{ marginTop: 10, fontSize: 12, color: "#888" }}>
-							상태: {status ?? "로딩중"} · WS:{" "}
-							{isWsConnected ? "연결됨" : "끊김"}
+							상태: {status ?? "로딩중"} · WS: {isWsConnected ? "연결됨" : "끊김"}
 						</div>
 					</div>
 				</div>
@@ -425,7 +476,7 @@ const styles: Record<string, React.CSSProperties> = {
 		justifyContent: "center",
 		padding: "0 16px",
 		zIndex: 20,
-		pointerEvents: "none", // 지도 드래그 방해 최소화
+		pointerEvents: "none",
 	},
 	bottomCard: {
 		width: "100%",
@@ -493,13 +544,12 @@ const styles: Record<string, React.CSSProperties> = {
 		position: "absolute",
 		left: 0,
 		right: 0,
-		bottom: 250, // 카드 위에 뜨도록 조정
+		bottom: 250,
 		display: "flex",
 		justifyContent: "center",
 		zIndex: 20,
 		pointerEvents: "none",
 	},
-
 	meetBtn: {
 		pointerEvents: "auto",
 		padding: "14px 28px",
