@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { SessionProvider, useSession } from "../context/SessionProvider";
 import type { LatLng } from "../utils/types/sessionTypes";
 import { useAuth } from "../contexts/AuthContext";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams, useNavigate } from "react-router-dom";
 
 declare global {
 	interface Window {
@@ -80,6 +80,7 @@ function SessionMapInner() {
 	const KAKAO_KEY = import.meta.env.VITE_KAKAO_MAP_KEY as string;
 	const { user } = useAuth();
 	const myUserId = user?.id ?? null;
+	const navigate = useNavigate();
 
 	const {
 		sessionId,
@@ -282,6 +283,7 @@ function SessionMapInner() {
 	const handleMeet = async () => {
 		if (!myPos) return;
 		await sendMeetAndFinish(myPos);
+		navigate("/story", { replace: true });
 	};
 
 	// ✅ (7) 사진 업로드: Provider 액션으로 처리 (업로드→응답(SessionPoint)→WS 재전송→history 갱신)
