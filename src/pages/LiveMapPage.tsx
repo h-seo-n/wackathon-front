@@ -1,7 +1,7 @@
 // SessionMapPage.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
-import { SessionProvider, useSession } from "../context/SessionProvider";
-import type { LatLng, SessionPoint } from "../utils/types";
+import { SessionProvider, useSession } from "@/context/SessionProvider";
+import type { LatLng, SessionPoint } from "@/utils/types/sessionTypes";
 
 declare global {
 	interface Window {

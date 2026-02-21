@@ -5,7 +5,6 @@ import {
 	getSession,
 } from "../../api/sessionSmoke";
 import { openSessionWs, type WsPayload } from "../../ws/sessionWs";
-import { TokenService } from "../../api/tokenService";
 
 // ✅ 하드코딩 토큰 2개
 const TOKENS = {
@@ -41,7 +40,7 @@ export default function WsSmokeTestPage() {
 
 	// ✅ 2번: 세션 생성 -> WS 자동 시작
 	const onCreateAndConnect = async () => {
-		TokenService.setToken(TOKENS[who]);
+		localStorage.setItem("accessToken", TOKENS[who]);
 		const sid = await createSession();
 		setSessionId(sid);
 		push(`created sessionId=${sid}`);
@@ -52,7 +51,7 @@ export default function WsSmokeTestPage() {
 	const onAcceptAndConnect = async () => {
 		if (sessionId === "" || !Number(sessionId))
 			return push("set sessionId first");
-		TokenService.setToken(TOKENS[who]);
+		localStorage.setItem("accessToken", TOKENS[who]);
 		const sid = Number(sessionId);
 		await acceptSession(sid);
 		push(`accepted sessionId=${sid}`);
@@ -90,7 +89,7 @@ export default function WsSmokeTestPage() {
 	const onCheckStatus = async () => {
 		if (sessionId === "" || !Number(sessionId))
 			return push("set sessionId first");
-		TokenService.setToken(TOKENS[who]);
+		localStorage.setItems("accessToken", TOKENS[who]);
 
 		const sid = Number(sessionId);
 		const s = await getSession(sid);
@@ -127,7 +126,7 @@ export default function WsSmokeTestPage() {
 					</select>
 				</label>
 
-				<button onClick={onCreateAndConnect}>
+				<button type='button' onClick={onCreateAndConnect}>
 					2) Create session + WS connect
 				</button>
 
@@ -140,14 +139,14 @@ export default function WsSmokeTestPage() {
 					style={{ width: 140 }}
 				/>
 
-				<button onClick={onAcceptAndConnect}>
+				<button type='button' onClick={onAcceptAndConnect}>
 					3) Accept session + WS connect
 				</button>
 
-				<button onClick={onCheckStatus}>Check status</button>
-				<button onClick={sendPoint}>Send POINT</button>
-				<button onClick={sendCancel}>Send CANCEL</button>
-				<button onClick={closeWs}>Close WS</button>
+				<button type='button' onClick={onCheckStatus}>Check status</button>
+				<button type='button' onClick={sendPoint}>Send POINT</button>
+				<button type='button' onClick={sendCancel}>Send CANCEL</button>
+				<button type='button' onClick={closeWs}>Close WS</button>
 			</div>
 
 			<div
@@ -159,9 +158,9 @@ export default function WsSmokeTestPage() {
 					overflow: "auto",
 				}}
 			>
-				{log.map((l, i) => (
+				{log.map((l) => (
 					<div
-						key={i}
+						key={`${l}`}
 						style={{
 							fontFamily: "monospace",
 							fontSize: 12,

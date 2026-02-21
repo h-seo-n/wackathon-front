@@ -22,9 +22,8 @@ import type {
 	LatLng,
 	SessionState,
 	FinishSessionRequest,
-} from "../utils/types";
+} from "@/utils/types/sessionTypes";
 import api from "../api/axios";
-import { TokenService } from "../api/tokenService";
 
 const SessionContext = createContext<SessionState | null>(null);
 
@@ -135,7 +134,7 @@ export function SessionProvider({
 	// ---------------------------
 
 	const buildWsUrl = useCallback((sid: number) => {
-		const token = TokenService.getToken?.() ?? TokenService.getToken?.() ?? "";
+		const token = localStorage.getItem("accessToken");
 		if (!token) {
 			// 토큰 없으면 연결해도 인증 실패 가능성이 큼
 			// (원하면 throw 처리)
@@ -147,7 +146,7 @@ export function SessionProvider({
 		// 스펙: wss://<domain>/ws/session?sessionId=123&token=<JWT>
 		const url = `${base}/ws/session?sessionId=${encodeURIComponent(
 			String(sid),
-		)}&token=${encodeURIComponent(token)}`;
+		)}&token=${encodeURIComponent(token || "")}`;
 		return url;
 	}, []);
 
