@@ -4,7 +4,7 @@ import Wrapper from "@/components/Wrapper";
 import { Explanation, Title } from "@/components/Text";
 import { Col } from "@/components/FlexBox";
 import { PinkButton } from "@/components/Button";
-import TextInput from "../TextInput";
+import TextInput from "../Auth/TextInput";
 import Divider from "@/components/Divider";
 import { useState } from "react";
 import Toast from "@/components/Toast";

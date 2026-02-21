@@ -6,3 +6,9 @@ export const Col = styled.div`
     width: 100%;
 `
 
+export const Row = styled.div`
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-items: center;
+`

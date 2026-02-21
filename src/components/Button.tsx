@@ -12,6 +12,7 @@ const Button = styled.button<{ theme: ThemeProps }>`
     align-items: center;
     justify-content: center;
     padding: 14px 0;
+    gap: 6px;
 `;
 
 export const PinkButton = styled(Button)`
