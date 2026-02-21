@@ -7,7 +7,7 @@ import {
 	type ReactNode,
 } from "react";
 
-import type { SessionHistoryResponse } from "../utils/types";
+import type { SessionHistoryResponse } from "../utils/types/sessionTypes";
 import { getHistoryBySessionId, listHistory } from "../api/history";
 
 /**

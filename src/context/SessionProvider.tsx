@@ -33,46 +33,6 @@ export function useSession() {
 	return ctx;
 }
 
-/**
- * WS로 보내는 payload 스펙 (요구사항 기준)
- */
-type WsOutMessage =
-	| {
-		type: "POINT";
-		lat: number;
-		lng: number;
-		ts: number;
-		text?: string;
-		photoPath?: string;
-	}
-	| { type: "MEET_CONFIRM"; lat: number; lng: number; ts: number }
-	| { type: "CANCEL"; ts: number };
-
-/**
- * 서버로부터 받을 수 있는 메시지(최소한으로 유연하게)
- * - 서버가 POINT를 브로드캐스트하면 이걸로 받는다고 가정
- * - text/photoPath 포함 가능
- */
-type WsInMessage =
-	| {
-		type: "POINT";
-		lat: number;
-		lng: number;
-		ts?: number;
-		text?: string;
-		photoPath?: string;
-		userId?: number;
-	}
-	| {
-		type: "MEET_CONFIRM";
-		lat: number;
-		lng: number;
-		ts?: number;
-		userId?: number;
-	}
-	| { type: "CANCEL"; ts?: number; userId?: number }
-	| { type: "ERROR"; message: string };
-
 type Props = {
 	/** 라우트에서 주입받는 sessionId (세션 생성/수락에서 바뀔 수 있어서 내부 state로도 관리) */
 	sessionId: number;

@@ -85,7 +85,6 @@ function SessionMapInner() {
 		partnerPos,
 		isWsConnected,
 		sendMeetAndFinish,
-		reloadHistory,
 		history,
 		uploadPhotoAndBroadcast,
 	} = useSession();
