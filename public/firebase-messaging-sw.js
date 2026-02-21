@@ -21,3 +21,7 @@ messaging.onBackgroundMessage((payload) => {
   };
   self.registration.showNotification(title, options);
 });
+
+self.addEventListener('push', function(event) {
+  console.log("🔥 PUSH RECEIVED", event);
+});
