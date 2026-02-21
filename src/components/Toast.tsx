@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
 const slideUp = keyframes`
@@ -46,34 +46,34 @@ const ToastContent = styled.div`
 `;
 
 interface ToastProps {
-  message: string;
-  duration?: number;
-  onClose: () => void;
+	message: string;
+	duration?: number;
+	onClose: () => void;
 }
 
 const Toast = ({ message, duration = 3000, onClose }: ToastProps) => {
-  const [isExiting, setIsExiting] = useState(false);
+	const [isExiting, setIsExiting] = useState(false);
 
-  useEffect(() => {
-    const exitTimer = setTimeout(() => {
-      setIsExiting(true);
-    }, duration - 300);
+	useEffect(() => {
+		const exitTimer = setTimeout(() => {
+			setIsExiting(true);
+		}, duration - 300);
 
-    const closeTimer = setTimeout(() => {
-      onClose();
-    }, duration);
+		const closeTimer = setTimeout(() => {
+			onClose();
+		}, duration);
 
-    return () => {
-      clearTimeout(exitTimer);
-      clearTimeout(closeTimer);
-    };
-  }, [duration, onClose]);
+		return () => {
+			clearTimeout(exitTimer);
+			clearTimeout(closeTimer);
+		};
+	}, [duration, onClose]);
 
-  return (
-    <ToastContainer $isExiting={isExiting}>
-      <ToastContent>{message}</ToastContent>
-    </ToastContainer>
-  );
+	return (
+		<ToastContainer $isExiting={isExiting}>
+			<ToastContent>{message}</ToastContent>
+		</ToastContainer>
+	);
 };
 
 export default Toast;

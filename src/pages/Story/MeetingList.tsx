@@ -7,15 +7,15 @@ import { Col } from "@/components/FlexBox";
 const ListContainer = styled(Col)`
     gap: 12px;
     width: 100%;
-`
+`;
 
-const Card = styled(Col)<{theme: ThemeProps}>`
+const Card = styled(Col)<{ theme: ThemeProps }>`
   background-color: #ffffff;
   border-radius: 16px;
   padding: 20px;
   gap: 14px;
   width: 100%;  
-  box-shadow: ${props => props.theme.shadow};
+  box-shadow: ${(props) => props.theme.shadow};
 `;
 
 const CardHeader = styled.div`
@@ -36,13 +36,11 @@ const DateText = styled.span`
   color: #1A1A1A;
 `;
 
-
 const TimeText = styled.span`
   font-size: 13px;
   font-weight: 400;
   color: #9CA3AF;
 `;
-
 
 const MeetingNumber = styled.span<{ theme: ThemeProps }>`
   font-size: 13px;
@@ -81,54 +79,51 @@ const StatValue = styled.span`
   color: #1A1A1A;
 `;
 
-
 export interface MeetingRecord {
-  date: string;       // e.g. "2월 15일 (일)"
-  time: string;       // e.g. "오전 12:00"
-  duration: number;   // 분
-  distance: number;   // m
+	date: string; // e.g. "2월 15일 (일)"
+	time: string; // e.g. "오전 12:00"
+	duration: number; // 분
+	distance: number; // m
 }
 
 interface MeetingListProps {
-  meetings: MeetingRecord[];
+	meetings: MeetingRecord[];
 }
 
 const MeetingList = ({ meetings }: MeetingListProps) => {
-  return (
-    <ListContainer>
-      {meetings.map((meeting, index) => (
-        <Card key={`${meeting.date}-${meeting.time}`}>
+	return (
+		<ListContainer>
+			{meetings.map((meeting, index) => (
+				<Card key={`${meeting.date}-${meeting.time}`}>
+					<CardHeader>
+						<DateGroup>
+							<DateText>{meeting.date}</DateText>
+							<TimeText>{meeting.time}</TimeText>
+						</DateGroup>
+						<MeetingNumber>만남 #{index + 1}</MeetingNumber>
+					</CardHeader>
 
-          <CardHeader>  
-            <DateGroup>
-              <DateText>{meeting.date}</DateText>
-              <TimeText>{meeting.time}</TimeText>
-            </DateGroup>
-            <MeetingNumber>만남 #{index + 1}</MeetingNumber>
-          </CardHeader>
+					<StatsRow>
+						<StatBox>
+							<StatLabel>
+								<IoTimeOutline size={14} />
+								소요 시간
+							</StatLabel>
+							<StatValue>{meeting.duration}분</StatValue>
+						</StatBox>
 
-          <StatsRow>
-            <StatBox>
-              <StatLabel>
-                <IoTimeOutline size={14} />
-                소요 시간
-              </StatLabel>
-              <StatValue>{meeting.duration}분</StatValue>
-            </StatBox>
-
-            <StatBox>
-              <StatLabel>
-                <HiOutlineArrowsRightLeft size={14} />
-                이동 거리
-              </StatLabel>
-              <StatValue>{meeting.distance}m</StatValue>
-            </StatBox>
-          </StatsRow>
-
-        </Card>
-      ))}
-    </ListContainer>
-  );
+						<StatBox>
+							<StatLabel>
+								<HiOutlineArrowsRightLeft size={14} />
+								이동 거리
+							</StatLabel>
+							<StatValue>{meeting.distance}m</StatValue>
+						</StatBox>
+					</StatsRow>
+				</Card>
+			))}
+		</ListContainer>
+	);
 };
 
 export default MeetingList;

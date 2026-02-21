@@ -18,13 +18,13 @@ const Button = styled.button<{ theme: ThemeProps }>`
 export const PinkButton = styled(Button)`
     background-color: ${(props) => props.theme.colors.primary};
     color: #ffffff;
-`
+`;
 export const GrayButton = styled(Button)`
     background-color: ${(props) => props.theme.colors.gray};
     color: ${(props) => props.theme.colors.black};
-`
+`;
 
 export const TextButton = styled(Button)`
     background: none;
     color: ${(props) => props.theme.colors.primary};
-`
+`;

@@ -18,7 +18,11 @@ const CirclesWrapper = styled.div`
   align-items: center;
 `;
 
-const Circle = styled.img<{ color: string; $zIndex?: number; theme: ThemeProps }>`
+const Circle = styled.img<{
+	color: string;
+	$zIndex?: number;
+	theme: ThemeProps;
+}>`
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -39,23 +43,23 @@ const TextGroup = styled.div`
 `;
 
 interface MeetingBannerProp {
-  title: string;
-  explanation: string | null;
+	title: string;
+	explanation: string | null;
 }
 
 const MeetingBanner = ({ title, explanation }: MeetingBannerProp) => {
-  return (
-    <Container>
-      <CirclesWrapper>
-        <Circle color="#F2DCA0" $zIndex={1} />
-        <Circle color="#EC4899" />
-      </CirclesWrapper>
-      <TextGroup>
-        <Title style={{ padding: 0, margin: 0 }}>{title}</Title>
-        {explanation && <Explanation>{explanation}</Explanation>}
-      </TextGroup>
-    </Container>
-  );
+	return (
+		<Container>
+			<CirclesWrapper>
+				<Circle color="#F2DCA0" $zIndex={1} />
+				<Circle color="#EC4899" />
+			</CirclesWrapper>
+			<TextGroup>
+				<Title style={{ padding: 0, margin: 0 }}>{title}</Title>
+				{explanation && <Explanation>{explanation}</Explanation>}
+			</TextGroup>
+		</Container>
+	);
 };
 
 export default MeetingBanner;

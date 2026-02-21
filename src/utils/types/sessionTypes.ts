@@ -1,25 +1,102 @@
-export type SessionStatus = "ACTIVE" | "FINISHED";
+export type SessionStatus = "PENDING" | "ACTIVE" | "DONE";
 
-export type SessionPointType = "LOCATION" | "PHOTO" | "TEXT" | "MEET";
+export type SessionEndReason = "MEET_CONFIRMED" | "TIMEOUT" | "MANUAL_CANCEL";
+
+export type SessionPointType = "PHOTO" | "MEMO" | "MEET_DONE" | "POINT";
 
 export type SessionPoint = {
 	id: number;
-	session_id: number;
-	user_id: number;
+	sessionId: number;
+	userId: number;
 	type: SessionPointType;
-	created_at: string; // ISO
+	createdAt: string; // ISO
 	lat: number | null;
 	lng: number | null;
-	photo_path?: string | null;
+	photoPath?: string | null;
 	text?: string | null;
 };
 
-export type SessionHistoryResponse = {
+export interface BasePointHistory {
+	createdAt: string;
+	lat: number;
+	lng: number;
+}
+
+export interface PhotoHistory extends BasePointHistory {
+	type: "PHOTO";
+	photoPath: string;
+}
+
+export interface MemoHistory extends BasePointHistory {
+	type: "MEMO";
+	text: string;
+}
+
+export interface MeetDoneHistory extends BasePointHistory {
+	type: "MEET_DONE";
+}
+
+export interface PointHistory extends BasePointHistory {
+	type: "POINT";
+}
+
+export type PointHistoryDto =
+	| PhotoHistory
+	| MemoHistory
+	| MeetDoneHistory
+	| PointHistory;
+
+export interface SessionHistoryResponse {
+	user1: PointHistoryDto;
+	user2: PointHistoryDto;
+}
+
+export interface HistoryResponse {
 	sessionId: number;
 	points: SessionPoint[];
-};
+}
 
 export type LatLng = { lat: number; lng: number };
+
+export interface Session {
+	id: number;
+	coupleId: number;
+	requestUserId: number;
+
+	requestedAt: string; // ISO date-time
+	status: SessionStatus;
+
+	startAt: string | null; // ACTIVE 전에는 null 가능성 있음
+	endAt: string | null;
+
+	endReason: SessionEndReason | null;
+
+	meetAt: string | null;
+	meetLat: number | null;
+	meetLng: number | null;
+}
+
+export interface SessionStatusResponse {
+	sessionId: number;
+	coupleId: number;
+	requestUserId: number;
+
+	status: SessionStatus;
+
+	requestedAt: string; // ISO date-time
+	startAt: string | null;
+	endAt: string | null;
+
+	endReason: SessionEndReason | null;
+
+	meetAt: string | null;
+	meetLat: number | null;
+	meetLng: number | null;
+}
+
+export interface FinishSessionRequest {
+	reason: SessionEndReason;
+}
 
 export type SessionState = {
 	sessionId: number | null;
@@ -37,4 +114,9 @@ export type SessionState = {
 	sendMeet: (pos: LatLng) => void;
 	sendMeetAndFinish: (pos: LatLng) => Promise<void>;
 	stopSharing: () => void;
+	uploadPhotoAndBroadcast: (file: File, text?: string) => Promise<SessionPoint>;
+	acceptAndStart: (sessionId: number) => Promise<void>;
+	createAndStart: () => Promise<Session>;
+	sendTextPoint: (text: string) => void;
+	sendCancel: () => void;
 };

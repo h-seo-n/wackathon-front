@@ -13,6 +13,6 @@ const Wrapper = styled.div<{ theme: ThemeProps }>`
     width: 100%;
     max-width: 400px;
     box-shadow: ${(props) => props.theme.shadow};
-`
+`;
 
 export default Wrapper;
