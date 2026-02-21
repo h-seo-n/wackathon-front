@@ -1,12 +1,6 @@
 :root {
-<<<<<<< HEAD
-	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-	line-height: 1.5;
-	font-weight: 400;
-=======
   line-height: 1.5;
   font-weight: 400;
->>>>>>> a81363bb7c84716b4036be63b9b81c6c12bc288e
 
 	color-scheme: light dark;
 	color: rgba(255, 255, 255, 0.87);
@@ -47,14 +41,6 @@ html {
 }
 
 body {
-<<<<<<< HEAD
-	margin: 0;
-	display: flex;
-	min-width: 320px;
-	width: 100%;
-	min-height: 100vh;
-	padding: 0;
-=======
   margin: 0;
   display: flex;
   min-width: 320px;
@@ -75,7 +61,6 @@ body {
     "Open Sans",
     "Helvetica Neue",
     sans-serif;
->>>>>>> a81363bb7c84716b4036be63b9b81c6c12bc288e
 }
 
 h1 {
