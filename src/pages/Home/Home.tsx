@@ -19,7 +19,8 @@ import { notifyPartnerLocationShare } from "@/api/noti";
 import { createSession, getActiveSession, acceptSession, getSessionStatus } from "@/api/session";
 import { openSessionWs } from "@/ws/sessionWs";
 import { useNavigate } from "react-router-dom";
-
+import api from "@/api/axios";
+import { useAuth } from "@/contexts/AuthContext";
 
 const StartTitle = styled(Title)`
     margin: 0;
@@ -34,7 +35,6 @@ const HomePage = () => {
 	const [sessionId, setSessionId] = useState<number | null>(null);
 	const [isWsConnected, setIsWsConnected] = useState(false);
 	const wsHandleRef = useRef<ReturnType<typeof openSessionWs> | null>(null);
-	const partnerName = "상대방";
 
 	const cleanupWs = useCallback(() => {
 		console.log("[home] WS cleanup");
@@ -147,6 +147,32 @@ const HomePage = () => {
 			cleanupWs();
 		};
 	}, [cleanupWs]);
+
+
+    const { user } = useAuth();
+    let partnerName = '상대방';
+
+    useEffect(() => {
+        const fetchPartnerProfile = async () => {
+        try {
+            const res = await api.get("/couples/profile");
+            const { user1, user2 } = res.data;
+            if (!user2) {
+                navigate('/partner')
+            }
+            partnerName= user2.nickname;
+
+            const partner = user1.id === user?.id ? user2 : user1;
+            if (partner.profile) {
+            }
+        } catch (e) {
+            navigate('/partner')
+            console.error("Failed to fetch couple profile", e);
+        }
+        };
+        fetchPartnerProfile();
+  }, [user?.id, navigate]);
+
 
 	return (
 		<PinkContainer style={{ paddingBottom: 100 }}>

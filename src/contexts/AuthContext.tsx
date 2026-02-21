@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 				setIsLoading(false);
 				return;
 			}
+            
 			try {
 				const newUser = await getUser();
 				setUser(newUser);
@@ -66,6 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 		}
 	};
 
+
 	/**
 	 * Signup Function
 	 */
@@ -81,6 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 			setIsLoading(false);
 		}
 	};
+
 	const logout = () => {
 		setUser(null);
 		localStorage.removeItem("accessToken");
