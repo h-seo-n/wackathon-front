@@ -36,7 +36,7 @@ const theme = {
 		smaller: "14px",
 		small: "16px",
 		medium: "20px",
-		large: "24px",
+		large: "22px",
 	},
 	fontWeights: {
 		regular: "400",

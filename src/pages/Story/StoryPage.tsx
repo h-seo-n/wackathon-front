@@ -10,6 +10,7 @@ import MeetingList from "./MeetingList";
 import ToggleTab from "@/components/ToggleTab";
 import MapHistory from "./MapHistory";
 import { useHistory } from "@/context/HistoryProvider";
+import api from "@/api/axios";
 
 const WhiteContainer = styled(PinkContainer)`
     background-color: #ffffff;
@@ -43,25 +44,48 @@ const StoryPage = () => {
 		error,
 	} = useHistory();
 
-	// ✅ map 탭 진입 시 히스토리 로드
+    const [stat, setStat] = useState<{
+        totalMeetings: number;
+        averageMinutes: number;
+        averageDistance: number;
+        totalMinutes: number;
+        totalDistance: number;
+        minMinutes: number;
+    } | null>(null);
+
+    useEffect(() => {
+        const fetchStat = async () => {
+            try {
+                const res = await api.get("/history/stat");
+                setStat(res.data);
+            } catch (e) {
+                console.error("Failed to fetch stat", e);
+            }
+        };
+        fetchStat();
+    }, []);
+
 	useEffect(() => {
 		if (activeTab !== "map") return;
 		void fetchGlobalHistory();
 		void fetchHistories();
 	}, [activeTab, fetchGlobalHistory, fetchHistories]);
 
-	// current month 가져오기, 만남 횟수 가져오기
-	const title = "11월, 우리는 3번 만났어요";
-	// 데이터 다 가져오기
-	const dashboardData: DashboardProps = {
-		avgTime: 33,
-		avgDistance: 2467,
-		totalTime: 98,
-		totalDistance: 7400,
-		fastestMeeting: 25,
-	};
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const title = stat
+    ? `${month}월, 우리는 ${stat.totalMeetings}번 만났어요`
+    : `아직 만남 정보가 없어요.`;
 
-	// StoryPage.tsx 내부 (혹은 utils로 분리)
+    const dashboardData: DashboardProps = {
+        avgTime: stat?.averageMinutes ?? 0,
+        avgDistance: stat?.averageDistance ?? 0,
+        totalTime: stat?.totalMinutes ?? 0,
+        totalDistance: stat?.totalDistance ?? 0,
+        fastestMeeting: stat?.minMinutes ?? 0,
+    };
+
+
 
 	const meetings = useMemo(() => {
 		const formatKoreanDateTime = (iso: string) => {
