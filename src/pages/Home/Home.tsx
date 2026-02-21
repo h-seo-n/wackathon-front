@@ -82,6 +82,8 @@ const HomePage = () => {
 		"false" | "pending" | "received" | "connected"
 	>("false");
 	const [toast, setToast] = useState<string | null>(null);
+	const [sessionId, setSessionId] = useState<number | null>(null);
+	const [isWsConnected, setIsWsConnected] = useState(false);
 	const wsHandleRef = useRef<ReturnType<typeof openSessionWs> | null>(null);
 	const partnerName = "상대방";
 
@@ -93,6 +95,7 @@ const HomePage = () => {
 		console.log("[home] WS cleanup");
 		wsHandleRef.current?.close();
 		wsHandleRef.current = null;
+		setIsWsConnected(false);
 	}, []);
 
 	const openWsConnection = useCallback(
@@ -107,14 +110,17 @@ const HomePage = () => {
 			const handler = openSessionWs(sessionId, token, {
 				onOpen: () => {
 					console.log("[home] WS open", handler?.url, "sessionId", sessionId);
+					setIsWsConnected(true);
 					setSessionStatus("connected");
 				},
 				onClose: () => {
 					console.log("[home] WS closed sessionId", sessionId);
+					setIsWsConnected(false);
 					setSessionStatus("false");
 				},
 				onError: () => {
 					console.error("[home] WS error sessionId", sessionId);
+					setIsWsConnected(false);
 				},
 				onMessage: (data) => {
 					console.log("[home] WS msg", data);
@@ -130,6 +136,7 @@ const HomePage = () => {
 		try {
 			const session = await createSession();
 			console.log("[home] 세션 생성 성공", session.id);
+			setSessionId(session.id);
 			setSessionStatus("pending");
 			openWsConnection(session.id);
 		} catch (err) {
@@ -144,6 +151,7 @@ const HomePage = () => {
 			const active = await getActiveSession();
 			if (active?.sessionId) {
 				setToast("파트너가 세션을 열었습니다. 연결합니다.");
+				setSessionId(active.sessionId);
 				setSessionStatus("received");
 				openWsConnection(active.sessionId);
 			} else {
@@ -172,6 +180,7 @@ const HomePage = () => {
 		console.log("[home] 위치 공유 중지");
 		cleanupWs();
 		setSessionStatus("false");
+		setSessionId(null);
 	};
 
 	useEffect(() => {
@@ -247,6 +256,11 @@ const HomePage = () => {
 							위치 공유를 시작하고 서로의 위치를 확인해보세요!
 						</Explanation>
 					</>
+				)}
+				{sessionId && sessionStatus !== "false" && (
+					<Explanation style={{ fontWeight: 600 }}>
+						{`세션 ID: ${sessionId} · WS ${isWsConnected ? "연결됨" : "대기 중"}`}
+					</Explanation>
 				)}
 
 				{sessionStatus === "false" ? (
